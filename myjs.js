@@ -34,6 +34,31 @@ var bullets = [];	/*Bullets Spawned*/
 
 var mapObjects=new Array(); /* saving all objects drawn*/
 
+function collision( checkingX,checkingY ){ 
+	var i;
+	var checkX=false;
+	var checkY=false;
+	var countX=0;
+	var countY=0;
+	for (i=0;i<mapObjects.length;i++){
+	
+		if (checkingX >=mapObjects[i].startingX && checkingX <=mapObjects[i].endingX ){
+			countX++;
+		}
+		if (checkingY >=mapObjects[i].startingY && checkingY <=mapObjects[i].endingY ){
+			countY++;
+		}	
+	}
+	if (mapObjects.length==countX){
+		checkX =true;		
+	}
+	if (mapObjects.length==countY){
+		checkY =true;		
+	}
+	
+	return checkX,checkY;
+	
+}
 
 window.onload= function(){
 	var h = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
