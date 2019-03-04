@@ -26,13 +26,13 @@ var kS = false;
 var kD = false;
 
 /* Draw map flag */
-var flag=false;
+var mapFlag=false;
 
 var fps = 60;	/*Frames Per Second (Refresh)*/
 
 var bullets = [];	/*Bullets Spawned*/
 
-var mapObjects=[]; /* saving all objects drawn*/
+var mapObjects=new Array(); /* saving all objects drawn*/
 
 
 window.onload= function(){
@@ -113,19 +113,33 @@ function drawBullets(){
 	    ctx.closePath();
 	}
 }
-function RectangleComponent(x, y,color,width, height) {
-	this.width = width;
-	this.height = height;
-	this.startX = x;
-	this.startY = y;
-	//this.endX = x +width;
-	//this.endY = y +height;
-	
-	this.color=color;
-	ctx.beginPath();
-	ctx.fillStyle = this.color;
-	ctx.fillRect(this.startX, this.startY, this.width, this.height);
-	ctx.closePath();
+class RectangleComponent{
+	constructor(x, y,color,width, height) {
+		this.width = width;
+		this.height = height;
+		this.startX = x;
+		this.startY = y;
+		this.endX = x +width;
+		this.endY = y +height;
+		
+		this.color=color;
+		ctx.beginPath();
+		ctx.fillStyle = this.color;
+		ctx.fillRect(this.startX, this.startY, this.width, this.height);
+		ctx.closePath();
+	}
+	get startingX() {
+		return this.startX;
+	}
+	get startingY() {
+		return this.startY;
+	}	
+	get endingX() {
+		return this.endX;
+	}
+	get endingY() {
+		return this.endX;
+	}
 }
 function drawMap(){
 	/*Control the size of the obstacles*/
@@ -142,168 +156,168 @@ function drawMap(){
 	var mapCenterX=0;
 	var mapCenterY=0;
 	/*top line 1st  obstacle*/
-	var rect1 = RectangleComponent(mapMinX+500,mapMaxY-100,"red",obstacle1,obstacle2);
-	mapObjects.push(rect1);
-	var rect2 = RectangleComponent(mapMinX+580,mapMaxY-120,"red",obstacle2,obstacle1);
-	mapObjects.push(rect2);
+	var rect1 = new RectangleComponent(mapMinX+500,mapMaxY-100,"red",obstacle1,obstacle2);
+	mapObjects[0]=rect1;
+	var rect2 = new RectangleComponent(mapMinX+580,mapMaxY-120,"red",obstacle2,obstacle1);
+	mapObjects[1]=rect2;
 	
 	/*top line 2nd  obstacle*/
-	var rect3 = RectangleComponent((mapMinX+1000)-80,mapMaxY-100,"red",obstacle1,obstacle2);
-	mapObjects.push(rect3);
-	var rect4 = RectangleComponent((mapMinX+1000)-80,mapMaxY-120,"red",obstacle2,obstacle1);
-	mapObjects.push(rect4);
+	var rect3 = new RectangleComponent((mapMinX+1000)-80,mapMaxY-100,"red",obstacle1,obstacle2);
+	mapObjects[2]=rect3;
+	var rect4 = new RectangleComponent((mapMinX+1000)-80,mapMaxY-120,"red",obstacle2,obstacle1);
+	mapObjects[3]=rect4;
 	
-	/*top line 3rd  obstacle*/
-	var rect9 = RectangleComponent(mapMinX+1500,mapMaxY-100,"red",obstacle1,obstacle2);
-	mapObjects.push(rect9);
-	var rect10 = RectangleComponent(mapMinX+1580,mapMaxY-120,"red",obstacle2,obstacle1);
-	mapObjects.push(rect10);
+	/* /*top line 3rd  obstacle*/
+	var rect9 = new RectangleComponent(mapMinX+1500,mapMaxY-100,"red",obstacle1,obstacle2);
+	mapObjects[4]=rect9;
+	var rect10 = new RectangleComponent(mapMinX+1580,mapMaxY-120,"red",obstacle2,obstacle1);
+	mapObjects[5]=rect10;
 	
 	/*top line 4th  obstacle*/
-	var rect13 = RectangleComponent((mapMinX+2000)-80,mapMaxY-100,"red",obstacle1,obstacle2);
-	mapObjects.push(rect13);
-	var rect14 = RectangleComponent((mapMinX+2000)-80,mapMaxY-120,"red",obstacle2,obstacle1);
-	mapObjects.push(rect14);
+	var rect13 = new RectangleComponent((mapMinX+2000)-80,mapMaxY-100,"red",obstacle1,obstacle2);
+	mapObjects[6]=rect13;
+	var rect14 = new RectangleComponent((mapMinX+2000)-80,mapMaxY-120,"red",obstacle2,obstacle1);
+	mapObjects[7]=rect14;
 	
 	/*top line 5th  obstacle*/
-	var rect17 = RectangleComponent(mapCenterX,mapMaxY-100,"red",obstacle1,obstacle2);
-	mapObjects.push(rect17);
-	var rect18 = RectangleComponent(mapCenterX,mapMaxY-120,"red",obstacle2,obstacle1);
-	mapObjects.push(rect18);
+	var rect17 = new RectangleComponent(mapCenterX,mapMaxY-100,"red",obstacle1,obstacle2);
+	mapObjects[8]=rect17;
+	var rect18 = new RectangleComponent(mapCenterX,mapMaxY-120,"red",obstacle2,obstacle1);
+	mapObjects[9]=rect18;
 	
 	/*top line 6th  obstacle*/
-	var rect19 = RectangleComponent((mapMaxX-2000)-80,mapMaxY-100,"red",obstacle1,obstacle2);
-	mapObjects.push(rect19);
-	var rect20 = RectangleComponent((mapMaxX-2000)-80,mapMaxY-120,"red",obstacle2,obstacle1);
-	mapObjects.push(rect20);
+	var rect19 = new RectangleComponent((mapMaxX-2000)-80,mapMaxY-100,"red",obstacle1,obstacle2);
+	mapObjects[10]=rect19;
+	var rect20 = new RectangleComponent((mapMaxX-2000)-80,mapMaxY-120,"red",obstacle2,obstacle1);
+	mapObjects[11]=rect20;
 	
 	/*top line 7th  obstacle*/
-	var rect21 = RectangleComponent(mapMaxX-1500,mapMaxY-100,"red",obstacle1,obstacle2);
-	mapObjects.push(rect21);
-	var rect22 = RectangleComponent(mapMaxX-1580,mapMaxY-120,"red",obstacle2,obstacle1);
-	mapObjects.push(rect22);
+	var rect21 = new RectangleComponent(mapMaxX-1500,mapMaxY-100,"red",obstacle1,obstacle2);
+	mapObjects[12]=rect21;
+	var rect22 = new RectangleComponent(mapMaxX-1580,mapMaxY-120,"red",obstacle2,obstacle1);
+	mapObjects[13]=rect22;
 	
 	/*top line 8th  obstacle*/
-	var rect23 = RectangleComponent((mapMaxX-2000)-80,mapMaxY-100,"red",obstacle1,obstacle2);
-	mapObjects.push(rect23);
-	var rect24 = RectangleComponent((mapMaxX-2000)-80,mapMaxY-120,"red",obstacle2,obstacle1);
-	mapObjects.push(rect24);
+	var rect23 = new RectangleComponent((mapMaxX-2000)-80,mapMaxY-100,"red",obstacle1,obstacle2);
+	mapObjects[14]=rect23;
+	var rect24 = new RectangleComponent((mapMaxX-2000)-80,mapMaxY-120,"red",obstacle2,obstacle1);
+	mapObjects[15]=rect24;
 	
 	/*top line 9th  obstacle*/
-	var rect35 = RectangleComponent(mapMaxX-500,mapMaxY-100,"red",obstacle1,obstacle2);
-	mapObjects.push(rect35);
-	var rect36 = RectangleComponent(mapMaxX-580,mapMaxY-120,"red",obstacle2,obstacle1);
-	mapObjects.push(rect36);
+	var rect35 = new RectangleComponent(mapMaxX-500,mapMaxY-100,"red",obstacle1,obstacle2);
+	mapObjects[16]=rect35;
+	var rect36 = new RectangleComponent(mapMaxX-580,mapMaxY-120,"red",obstacle2,obstacle1);
+	mapObjects[17]=rect36;
 	
 	/*bottom line 1st  obstacle*/
-	var rect5 = RectangleComponent(mapMinX+500,mapMinY+120,"red",obstacle1,obstacle2);
-	mapObjects.push(rect5);
-	var rect6 = RectangleComponent(mapMinX+500,mapMinY+220,"red",obstacle2,obstacle1);
-	mapObjects.push(rect6);
+	var rect5 = new RectangleComponent(mapMinX+500,mapMinY+120,"red",obstacle1,obstacle2);
+	mapObjects[18]=rect5;
+	var rect6 = new RectangleComponent(mapMinX+500,mapMinY+220,"red",obstacle2,obstacle1);
+	mapObjects[19]=rect6;
 	/*bottom line 2nd  obstacle*/
-	var rect7 = RectangleComponent((mapMinX+1000)-80,mapMinY+120,"red",obstacle1,obstacle2);
-	mapObjects.push(rect7);
-	var rect8 = RectangleComponent((mapMinX+1000),mapMinY+220,"red",obstacle2,obstacle1);
-	mapObjects.push(rect8);	
+	var rect7 = new RectangleComponent((mapMinX+1000)-80,mapMinY+120,"red",obstacle1,obstacle2);
+	mapObjects[20]=rect7;
+	var rect8 = new RectangleComponent((mapMinX+1000),mapMinY+220,"red",obstacle2,obstacle1);
+	mapObjects[21]=rect8;	
 	/*bottom line 3rd  obstacle*/
-	var rect11 = RectangleComponent(mapMinX+1500,mapMinY+120,"red",obstacle1,obstacle2);
-	mapObjects.push(rect11);
-	var rect12 = RectangleComponent(mapMinX+1500,mapMinY+220,"red",obstacle2,obstacle1);
-	mapObjects.push(rect12);
+	var rect11 = new RectangleComponent(mapMinX+1500,mapMinY+120,"red",obstacle1,obstacle2);
+	mapObjects[22]=rect11;
+	var rect12 = new RectangleComponent(mapMinX+1500,mapMinY+220,"red",obstacle2,obstacle1);
+	mapObjects[23]=rect12;
 	
 	/*bottom line 4th  obstacle*/
-	var rect15 = RectangleComponent((mapMinX+2000)-80,mapMinY+120,"red",obstacle1,obstacle2);
-	mapObjects.push(rect15);
-	var rect16 = RectangleComponent((mapMinX+2000),mapMinY+220,"red",obstacle2,obstacle1);
-	mapObjects.push(rect16);	
+	var rect15 = new RectangleComponent((mapMinX+2000)-80,mapMinY+120,"red",obstacle1,obstacle2);
+	mapObjects[24]=rect15;
+	var rect16 = new RectangleComponent((mapMinX+2000),mapMinY+220,"red",obstacle2,obstacle1);
+	mapObjects[25]=rect16;	
 	
 	/*bottom line 5th  obstacle*/
-	var rect25 = RectangleComponent(mapCenterX,mapMinY+120,"red",obstacle1,obstacle2);
-	mapObjects.push(rect25);
-	var rect26 = RectangleComponent(mapCenterX,mapMinY+220,"red",obstacle2,obstacle1);
-	mapObjects.push(rect26);
+	var rect25 = new RectangleComponent(mapCenterX,mapMinY+120,"red",obstacle1,obstacle2);
+	mapObjects[26]=rect25;
+	var rect26 = new RectangleComponent(mapCenterX,mapMinY+220,"red",obstacle2,obstacle1);
+	mapObjects[27]=rect26;
 	/*bottom line 6th  obstacle*/
-	var rect27 = RectangleComponent((mapMaxX-2000)-80,mapMinY+120,"red",obstacle1,obstacle2);
-	mapObjects.push(rect27);
-	var rect28 = RectangleComponent((mapMaxX-2000),mapMinY+220,"red",obstacle2,obstacle1);
-	mapObjects.push(rect28);	
+	var rect27 = new RectangleComponent((mapMaxX-2000)-80,mapMinY+120,"red",obstacle1,obstacle2);
+	mapObjects[28]=rect27;
+	var rect28 = new RectangleComponent((mapMaxX-2000),mapMinY+220,"red",obstacle2,obstacle1);
+	mapObjects[29]=rect28;	
 	/*bottom line 7th  obstacle*/
-	var rect29 = RectangleComponent(mapMaxX-1500,mapMinY+120,"red",obstacle1,obstacle2);
-	mapObjects.push(rect29);
-	var rect30 = RectangleComponent(mapMaxX-1500,mapMinY+220,"red",obstacle2,obstacle1);
-	mapObjects.push(rect30);
+	var rect29 = new RectangleComponent(mapMaxX-1500,mapMinY+120,"red",obstacle1,obstacle2);
+	mapObjects[30]=rect29;
+	var rect30 = new RectangleComponent(mapMaxX-1500,mapMinY+220,"red",obstacle2,obstacle1);
+	mapObjects[31]=rect30;
 	
 	/*bottom line 8th  obstacle*/
-	var rect31 = RectangleComponent((mapMaxX-1000)-80,mapMinY+120,"red",obstacle1,obstacle2);
-	mapObjects.push(rect31);
-	var rect32 = RectangleComponent((mapMaxX-1000),mapMinY+220,"red",obstacle2,obstacle1);
-	mapObjects.push(rect32);	
+	var rect31 = new RectangleComponent((mapMaxX-1000)-80,mapMinY+120,"red",obstacle1,obstacle2);
+	mapObjects[32]=rect31;
+	var rect32 = new RectangleComponent((mapMaxX-1000),mapMinY+220,"red",obstacle2,obstacle1);
+	mapObjects[33]=rect32;	
 	
 	/*bottom line 9th  obstacle*/
-	var rect33 = RectangleComponent(mapMaxX-500,mapMinY+120,"red",obstacle1,obstacle2);
-	mapObjects.push(rect33);
-	var rect34 = RectangleComponent(mapMaxX-500,mapMinY+220,"red",obstacle2,obstacle1);
-	mapObjects.push(rect34);
+	var rect33 = new RectangleComponent(mapMaxX-500,mapMinY+120,"red",obstacle1,obstacle2);
+	mapObjects[34]=rect33;
+	var rect34 = new RectangleComponent(mapMaxX-500,mapMinY+220,"red",obstacle2,obstacle1);
+	mapObjects[35]=rect34;
 	
 	/* The house in the left*/
 	/*top wall*/
-	var house1Wall1= RectangleComponent((mapMinX/2)+200,(mapCenterY)-200,"Chocolate",400,20);
-	mapObjects.push(house1Wall1);
+	var house1Wall1= new RectangleComponent((mapMinX/2)+200,(mapCenterY)-200,"Chocolate",400,20);
+	mapObjects[36]=house1Wall1;
 	/*left side wall*/
-	var house1Wall2 = RectangleComponent((mapMinX/2)+200,(mapCenterY)-180,"Chocolate",20,400);
-	mapObjects.push(house1Wall2);
+	var house1Wall2 = new RectangleComponent((mapMinX/2)+200,(mapCenterY)-180,"Chocolate",20,400);
+	mapObjects[37]=house1Wall2;
 	/*bottom wall*/
-	var house1Wall3= RectangleComponent((mapMinX/2)+200,(mapCenterY)+220,"Chocolate",300,20);
-	mapObjects.push(house1Wall3);
+	var house1Wall3= new RectangleComponent((mapMinX/2)+200,(mapCenterY)+220,"Chocolate",300,20);
+	mapObjects[38]=house1Wall3;
 	/*right side wall*/
-	var house1Wall4 = RectangleComponent((mapMinX/2)-180,(mapCenterY)-180,"Chocolate",20,400);
-	mapObjects.push(house1Wall4);
+	var house1Wall4 = new RectangleComponent((mapMinX/2)-180,(mapCenterY)-180,"Chocolate",20,400);
+	mapObjects[39]=house1Wall4;
 	
 	/*door side wall*/
-	var house1Door = RectangleComponent((mapMinX/2)-180,(mapCenterY)+220,"brown",20,75);
-	mapObjects.push(house1Door);
+	var house1Door = new RectangleComponent((mapMinX/2)-180,(mapCenterY)+220,"brown",20,75);
+	mapObjects[40]=house1Door;
 	
 	/* The house in the middle*/
 	/*top wall*/
-	var house2Wall1= RectangleComponent((mapCenterX)-100,(mapCenterY)-200,"Chocolate",300,20);
+	var house2Wall1= new RectangleComponent((mapCenterX)-100,(mapCenterY)-200,"Chocolate",300,20);
 	
-	mapObjects.push(house2Wall1);
+	mapObjects[41]=house2Wall1;
 	/*left side wall*/
-	var house2Wall2 = RectangleComponent((mapCenterX)-200,(mapCenterY)-180,"Chocolate",20,400);
-	mapObjects.push(house2Wall2);
+	var house2Wall2 = new RectangleComponent((mapCenterX)-200,(mapCenterY)-180,"Chocolate",20,400);
+	mapObjects[42]=house2Wall2;
 	
 	/*bottom wall*/
-	var house2Wall3= RectangleComponent((mapCenterX)-200,(mapCenterY)+220,"Chocolate",300,20);
-	mapObjects.push(house2Wall3);
+	var house2Wall3= new RectangleComponent((mapCenterX)-200,(mapCenterY)+220,"Chocolate",300,20);
+	mapObjects[43]=house2Wall3;
 	/*right side wall*/
-	var house2Wall4 = RectangleComponent((mapCenterX)+180,(mapCenterY)-180,"Chocolate",20,400);
-	mapObjects.push(house2Wall4);
+	var house2Wall4 = new RectangleComponent((mapCenterX)+180,(mapCenterY)-180,"Chocolate",20,400);
+	mapObjects[44]=house2Wall4;
 	
 	/*door side wall*/
-	var house2Door = RectangleComponent((mapCenterX)+180,(mapCenterY)+220,"brown",20,75);
-	mapObjects.push(house2Door);
+	var house2Door = new RectangleComponent((mapCenterX)+180,(mapCenterY)+220,"brown",20,75);
+	mapObjects[45]=house2Door;
 	/*door side wall*/
-	var house2Door2 = RectangleComponent((mapCenterX)-200,(mapCenterY)-250,"brown",20,75);
-	mapObjects.push(house2Door2);
+	var house2Door2 = new RectangleComponent((mapCenterX)-200,(mapCenterY)-250,"brown",20,75);
+	mapObjects[46]=house2Door2;
 	
 	
 	/* The house in the right*/
 	/*top wall*/  
-	var house3Wall1= RectangleComponent((mapMaxX/2)-200,(mapCenterY)-200,"Chocolate",300,20);
-	mapObjects.push(house3Wall1);
+	var house3Wall1= new RectangleComponent((mapMaxX/2)-200,(mapCenterY)-200,"Chocolate",300,20);
+	mapObjects[47]=house3Wall1;
 	/*left side wall*/
-	var house3Wall2 = RectangleComponent((mapMaxX/2)-200,(mapCenterY)-180,"Chocolate",20,400);
-	mapObjects.push(house3Wall2);
+	var house3Wall2 = new RectangleComponent((mapMaxX/2)-200,(mapCenterY)-180,"Chocolate",20,400);
+	mapObjects[48]=house3Wall2;
 	/*bottom wall*/
-	var house3Wall3= RectangleComponent((mapMaxX/2)-200,(mapCenterY)+220,"Chocolate",400,20);
-	mapObjects.push(house3Wall3);
+	var house3Wall3= new RectangleComponent((mapMaxX/2)-200,(mapCenterY)+220,"Chocolate",400,20);
+	mapObjects[49]=house3Wall3;
 	/*right side wall*/
-	var house3Wall4 = RectangleComponent((mapMaxX/2)+180,(mapCenterY)-180,"Chocolate",20,400);
-	mapObjects.push(house3Wall4);
+	var house3Wall4 = new RectangleComponent((mapMaxX/2)+180,(mapCenterY)-180,"Chocolate",20,400);
+	mapObjects[50]=house3Wall4;
 	
 	/*door side wall*/
-	var house3Door = RectangleComponent((mapMaxX/2)+180,(mapCenterY)-250,"brown",20,75);
-	mapObjects.push(house3Door);
+	var house3Door = new RectangleComponent((mapMaxX/2)+180,(mapCenterY)-250,"brown",20,75);
+	mapObjects[51]=house3Door; 
 	
 	
 }
@@ -312,10 +326,11 @@ function draw() {
 	var flag = false;
 	var i;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-	if (flag==false){
+	//if (flag==false){
 	drawMap();
-	flag=true;
-	}
+		//mapFlag=true;
+		
+	//}
     drawPlayer();
     drawGun();
     drawBullets();
