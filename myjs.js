@@ -42,10 +42,10 @@ function collision( checkingX,checkingY ){
 	var countY=0;
 	for (i=0;i<mapObjects.length;i++){
 	
-		if (checkingX >=mapObjects[i].startingX && checkingX <=mapObjects[i].endingX ){
+		if (checkingX <mapObjects[i].startingX && checkingX >mapObjects[i].endingX ){
 			countX++;
 		}
-		if (checkingY >=mapObjects[i].startingY && checkingY <=mapObjects[i].endingY ){
+		if (checkingY <mapObjects[i].startingY && checkingY > mapObjects[i].endingY ){
 			countY++;
 		}	
 	}

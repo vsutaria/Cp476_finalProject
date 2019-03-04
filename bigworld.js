@@ -274,7 +274,7 @@ window.MyGame = {};	/*Game Object*/
 		this.width = width;
 		this.height = height;
 
-		this.color = "#aaaaaa"
+		this.color = "#00A102"
 		this.image = null;
 	}
 
@@ -287,19 +287,20 @@ window.MyGame = {};	/*Game Object*/
 		// imgBg.src = "images/background.png"; /*https://www.toptal.com/designers/subtlepatterns/vintage-concrete*/
 
 
-		var rows = ~~(this.width/44) + 1;
-		var cols = ~~(this.height/44) + 1;
+		var rows = ~~(this.width/200) + 1;
+		var cols = ~~(this.height/200) + 1;
 
 		ctx.save();			
 		ctx.fillStyle = this.color;		    
-		for (var x = 0, i = 0; i < rows; x+=44, i++) {
+		for (var x = 0, i = 0; i < rows; x+=200, i++) {
 			ctx.beginPath();			
-			for (var y = 0, j = 0; j < cols; y += 44, j++) {            
-				ctx.rect (x, y, 40, 40);				
+			for (var y = 0, j = 0; j < cols; y += 200, j++) {            
+				ctx.rect (x, y, 200, 200);				
 			}
-			this.color = (this.color == "#aaaaaa" ? "#777777" : "#aaaaaa");
 			ctx.fillStyle = this.color;
 			ctx.fill();
+			ctx.strokeStyle = "#009002";
+			ctx.stroke();
 			ctx.closePath();			
 		}		
 		ctx.restore();
@@ -387,9 +388,9 @@ window.MyGame = {};	/*Game Object*/
 
 	/*Initialize Game Map Size*/
 	var gameMap = {
-		width: 5000,
-		height: 5000,
-		map: new MyGame.Map(5000,5000)
+		width: 2500,
+		height: 2500,
+		map: new MyGame.Map(2500,2500)
 	};
 
 	gameMap.map.generate();
