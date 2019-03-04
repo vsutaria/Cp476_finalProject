@@ -224,7 +224,7 @@ window.MyGame = {};	/*Game Object*/
 	MyGame.Gun = Gun;
 })();
 
-(function(){
+/*(function(){
 	function Bullet(xp, yp, xd, yd, sBullet, rBullet){
 		this.xPos = xp;
 		this.yPos = yp;
@@ -267,7 +267,7 @@ window.MyGame = {};	/*Game Object*/
 	};
 
 	MyGame.Bullet = Bullet;
-})();
+})();*/
 
 (function(){
 	function Map(width, height){
