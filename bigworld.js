@@ -302,11 +302,39 @@ MyGame.bullets = [];
 })();
 
 (function(){
+	function Wall(x, y, width, height, color){
+		this.width = width || 0;
+		this.height = height || 0;
+		this.xStart = x || 0;
+		this.yStart = y || 0;
+		this.xEnd = x + width;
+		this.yEnd = y + height;
+		this.color = color;
+	}
+
+	Wall.prototype.draw = function(ctx){
+		ctx.save();
+		ctx.beginPath();			        
+		ctx.rect (this.xStart, this.yStart, this.width, this.height);
+		ctx.fillStyle = this.color;
+		ctx.fill();
+		ctx.strokeStyle = "#000000";
+		ctx.stroke();
+		ctx.closePath();
+		ctx.restore();
+	}
+
+	MyGame.Wall = Wall;
+})();
+
+(function(){
 	function Map(width, height){
 		this.width = width;
 		this.height = height;
+		this.walls = [];
 
 		this.color = "#00A102"
+
 		this.image = null;
 	}
 
@@ -336,6 +364,33 @@ MyGame.bullets = [];
 			ctx.closePath();			
 		}		
 		ctx.restore();
+
+		var wWidth = 100;
+		var wLength = 20;
+
+		/*Houses' Walls*/
+		this.walls.push(new MyGame.Wall(100, 100, wLength, wWidth, "red"));
+		this.walls.push(new MyGame.Wall(100, 100, wWidth, wLength, "red"));
+
+		this.walls.push(new MyGame.Wall(980, this.height - 100, wLength, wWidth, "red"));
+		this.walls.push(new MyGame.Wall(980, this.height - 120, wWidth, wLength, "red"));
+
+		this.walls.push(new MyGame.Wall(1500, this.height - 100, wLength, wWidth, "red"));
+		this.walls.push(new MyGame.Wall(1580, this.height - 120, wWidth, wLength, "red"));
+
+		this.walls.push(new MyGame.Wall(1980, this.height - 100, wLength, wWidth, "red"));
+		this.walls.push(new MyGame.Wall(1980, this.height - 120, wWidth, wLength, "red"));
+
+		this.walls.push(new MyGame.Wall(1250, this.height - 100, wLength, wWidth, "red"));
+		this.walls.push(new MyGame.Wall(1250, this.height - 120, wWidth, wLength, "red"));
+
+		this.walls.push(new MyGame.Wall(0, 0, wLength, wWidth, "red"));
+		this.walls.push(new MyGame.Wall(0, 0, wWidth, wLength, "red"));
+
+		for (var i = 0; i < this.walls.length; i++) {
+			this.walls[i].draw(ctx);
+		}
+
 /*
 		ctx.save();
 		for(var x = 0, i = 0; i < rows; x += 400, i++){
