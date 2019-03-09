@@ -14,6 +14,19 @@ window.onload = function(){
 
 window.MyGame = {};	/*Game Object*/
 
+/*Key Presses and Mouse Coords*/
+MyGame.controls = {
+	kW: false,
+	kA: false,
+	kS: false,
+	kD: false,
+	xMouse: 0,
+	yMouse: 0
+}
+
+/*Active Bullets*/
+MyGame.bullets = [];
+
 /*Rectangle Object*/
 (function(){
 	function RectangleComponent(x, y,width, height) {
@@ -23,12 +36,6 @@ window.MyGame = {};	/*Game Object*/
 		this.yStart = y || 0;
 		this.xEnd = x + width;
 		this.yEnd = y + height;
-		
-		/*this.color=color;
-		ctx.beginPath();
-		ctx.fillStyle = this.color;
-		ctx.fillRect(this.xStart, this.yStart, this.width, this.height);
-		ctx.closePath();*/
 	}
 
 	RectangleComponent.prototype.set = function(x, y, width, height){
@@ -53,6 +60,7 @@ window.MyGame = {};	/*Game Object*/
 	MyGame.RectangleComponent = RectangleComponent;
 })();
 
+/*Camera Object*/
 (function(){
 
 	var DIR = {
@@ -66,9 +74,11 @@ window.MyGame = {};	/*Game Object*/
 		this.xPos = xPos || 0;
 		this.yPos = yPos || 0;
 
+		/*Used to detect map walls*/
 		this.xWall = 0;
 		this.yWall = 0;
 
+		/*Size of the html canvas*/
 		this.cvsWidth = cvsWidth;
 		this.cvsHeight = cvsHeight;
 
@@ -76,11 +86,14 @@ window.MyGame = {};	/*Game Object*/
 
 		this.following = null;
 
+		/*Viewport Rectangle*/
 		this.vpRect = new MyGame.RectangleComponent(this.xPos, this.yPos, this.cvsWidth, this.cvsHeight);
 
+		/*Map Rectangle*/
 		this.mapRect = new MyGame.RectangleComponent(0, 0, mapWidth, mapHeight);
 	}
 
+	/*Assign a player for the camera to follow*/
 	Camera.prototype.follow = function(playerObj, xWall, yWall){
 		this.following = playerObj;
 		this.xWall = xWall;
@@ -90,6 +103,7 @@ window.MyGame = {};	/*Game Object*/
 	Camera.prototype.update = function(){
 		if(this.following != null){
 			if(this.dir == DIR.HORIZONTAL || this.dir == DIR.BOTH){
+				/*Ensure the Camera does not leave the Map on x axis*/
 				if(this.following.xPos - this.xPos + this.xWall > this.cvsWidth){
 					this.xPos = this.following.xPos - this.cvsWidth + this.xWall;
 				}
@@ -98,6 +112,7 @@ window.MyGame = {};	/*Game Object*/
 				}
 			}
 			if(this.dir == DIR.VERTICAL || this.dir == DIR.BOTH){
+				/*Ensure the Camera does not leave the Map on y axis*/
 				if(this.following.yPos - this.yPos + this.yWall > this.cvsHeight){
 					this.yPos = this.following.yPos - this.cvsHeight + this.yWall;
 				}
@@ -139,7 +154,7 @@ window.MyGame = {};	/*Game Object*/
 		this.radius = rPlayer;
 	}
 
-	Player.prototype.update = function(step, mapWidth, mapHeight){
+	Player.prototype.update = function(step, mapWidth, mapHeight, walls){
 		if(MyGame.controls.kA){
 			this.xPos -= this.speed * step;
 		}
@@ -178,6 +193,10 @@ window.MyGame = {};	/*Game Object*/
 		ctx.closePath();
 		ctx.restore();
 	};
+
+	Player.prototype.getPos = function(){
+		return [~~(this.xPos/1), ~~(this.yPos/1)];
+	}
 
 	MyGame.Player = Player;
 })();
@@ -221,11 +240,19 @@ window.MyGame = {};	/*Game Object*/
 		document.querySelector("#coords").innerHTML = "( " + ~~(this.xPos/1 - xCvs) + ", " + ~~(this.yPos/1 - yCvs) + " )" + "( " + MyGame.controls.xMouse + ", " + MyGame.controls.yMouse + " )" + "( " + this.angle  + " )";	// Report mouse coordinates in the canvas
 	};
 
+	Gun.prototype.getHeight = function(){
+		return this.height;
+	}
+
+	Gun.prototype.getAngle = function(){
+		return this.angle;
+	}
+
 	MyGame.Gun = Gun;
 })();
 
-/*(function(){
-	function Bullet(xp, yp, xd, yd, sBullet, rBullet){
+(function(){
+	function Bullet(xp, yp, xd, yd, sBullet, rBullet, walls){
 		this.xPos = xp;
 		this.yPos = yp;
 
@@ -236,6 +263,7 @@ window.MyGame = {};	/*Game Object*/
 		this.radius = rBullet;
 
 		this.spawned = true;
+
 	}
 
 	Bullet.prototype.update = function(step, mapWidth, mapHeight){
@@ -256,18 +284,22 @@ window.MyGame = {};	/*Game Object*/
 		}
 	}
 
-	Player.prototype.draw = function(ctx, xCvs, yCvs){
+	Bullet.prototype.draw = function(ctx, xCvs, yCvs){
 		ctx.save();
 		ctx.beginPath();
-		ctx.arc(this.xPos, this.yPos, this.radius, 0, Math.PI*2);
+		ctx.arc(this.xPos - xCvs, this.yPos - yCvs, this.radius, 0, Math.PI*2);
 		ctx.fillStyle = "#000000";
 		ctx.fill();
 		ctx.closePath();
 		ctx.restore();
 	};
 
+	Bullet.prototype.getSpawned = function(){
+		return this.spawned;
+	}
+
 	MyGame.Bullet = Bullet;
-})();*/
+})();
 
 (function(){
 	function Map(width, height){
@@ -362,12 +394,9 @@ window.MyGame = {};	/*Game Object*/
 	var canvas = document.getElementById("myCanvas");
 	var ctx = canvas.getContext("2d");
 
-	canvas.addEventListener("mousemove", aimHandler, false);
-	canvas.addEventListener("click", fireHandler, false);
-
-	var h = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
-	canvas.setAttribute("height", 0.9 * h);
-	canvas.setAttribute("width", 0.9 * h);
+	var cHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+	canvas.setAttribute("height", 0.9 * cHeight);
+	canvas.setAttribute("width", 0.9 * cHeight);
 
 	/*Frames Per Second (Refresh)*/
 	var fps = 60;
@@ -380,11 +409,15 @@ window.MyGame = {};	/*Game Object*/
 
 	/*Player and Bullet Radius*/
 	var rPlayer = 40;
-	var bRadius = 10;
+	var rBullet = 10;
+
+	MyGame.rBullet = rBullet;
 
 	/*Plater and Bullet Speeds*/
-	var bulletSpeed = 250;
-	var playerSpeed = 200;
+	var sBullet = 3000;
+	var sPlayer = 200;
+
+	MyGame.sBullet = sBullet;
 
 	/*Initialize Game Map Size*/
 	var gameMap = {
@@ -395,15 +428,40 @@ window.MyGame = {};	/*Game Object*/
 
 	gameMap.map.generate();
 
-	var player = new MyGame.Player(xPlayer, yPlayer, playerSpeed, rPlayer);
+	var player = new MyGame.Player(xPlayer, yPlayer, sPlayer, rPlayer);
 	var gun = new MyGame.Gun(xPlayer, yPlayer)
 
 	var camera = new MyGame.Camera(0, 0, canvas.width, canvas.height, gameMap.width, gameMap.height);
 	camera.follow(player, canvas.width/2, canvas.height/2);
 
+	canvas.addEventListener("mousemove", aimHandler, false);
+	canvas.addEventListener("click", function(e){
+		var i;
+		var pPos = player.getPos();
+		var angle = gun.getAngle();
+
+		xp = pPos[0] + gun.getHeight() * Math.cos(angle + Math.PI/2);	//Bullet xPos
+		yp = pPos[1] + gun.getHeight() * Math.sin(angle + Math.PI/2);	//Bullet yPos
+
+		xd = (xp - pPos[0])/cHeight;	//Bullet xDir
+		yd = (yp - pPos[1])/cHeight;	//Bullet yDir
+
+		MyGame.bullets[MyGame.bullets.length] = new MyGame.Bullet(xp,yp,xd,yd,sBullet,rBullet);
+	}, false);
+
 	var update = function(){
+		var dBullet = [];	//Bullet indices to delete
 		player.update(step, gameMap.width, gameMap.height);
 		gun.update(player.xPos, player.yPos, camera.xPos, camera.yPos);
+		for(var i = 0; i < MyGame.bullets.length; i++){
+			MyGame.bullets[i].update(step, gameMap.width, gameMap.height);
+			if(!MyGame.bullets[i].getSpawned()){
+				dBullet[dBullet.length] = i;
+			}
+		}
+		for(var i = 0; i < dBullet.length; i++){
+			MyGame.bullets.splice(dBullet[i] - i, 1);
+		}
 		camera.update();
 	}
 
@@ -413,6 +471,9 @@ window.MyGame = {};	/*Game Object*/
 		gameMap.map.draw(ctx, camera.xPos, camera.yPos);
 		player.draw(ctx, camera.xPos, camera.yPos);
 		gun.draw(ctx, camera.xPos, camera.yPos);
+		for(var i = 0; i < MyGame.bullets.length; i++){
+			MyGame.bullets[i].draw(ctx, camera.xPos, camera.yPos);
+		}
 	}
 
 	var playGame = function(){
@@ -423,20 +484,7 @@ window.MyGame = {};	/*Game Object*/
 	MyGame.play = function(){
 		setInterval(function(){playGame();}, interval);
 	}
-
 })();
-
-/*Key Presses*/
-MyGame.controls = {
-	kW: false,
-	kA: false,
-	kS: false,
-	kD: false,
-	xMouse: 0,
-	yMouse: 0
-}
-
-MyGame.bullets = [];
 
 window.addEventListener("keydown", kDownHandler, false);
 window.addEventListener("keyup", kUpHandler, false);
@@ -475,25 +523,6 @@ function aimHandler(e){
 	var c = e.target.getBoundingClientRect();
 	MyGame.controls.xMouse = Math.floor(e.clientX - c.left);
 	MyGame.controls.yMouse = Math.floor(e.clientY - c.top);
-}
-
-function fireHandler(e){
-	var i;
-	var subX = mouseX - playerX;
-	var subY = mouseY - playerY;
-	var angle = Math.atan(subY/subX);
-
-	if (subX < 0){
-		angle += Math.PI;
-	}
-
-	bullets[bullets.length] = [];
-
-	bullets[bullets.length-1][0] = playerX + gunH * Math.cos(angle);	//Bullet xPos
-	bullets[bullets.length-1][1] = playerY + gunH * Math.sin(angle);	//Bullet yPos
-
-	bullets[bullets.length-1][2] = (bullets[bullets.length-1][0] - playerX)/canvas.width;	//Bullet xDir
-	bullets[bullets.length-1][3] = (bullets[bullets.length-1][1] - playerY)/canvas.height;	//Bullet yDir
 }
 
 MyGame.play();
