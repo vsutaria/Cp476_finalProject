@@ -365,27 +365,20 @@ MyGame.bullets = [];
 		}		
 		ctx.restore();
 
-		var wWidth = 100;
-		var wLength = 20;
+		var wWidth = 20;
+		var wLength = 300;
 
-		/*Houses' Walls*/
-		this.walls.push(new MyGame.Wall(100, 100, wLength, wWidth, "red"));
-		this.walls.push(new MyGame.Wall(100, 100, wWidth, wLength, "red"));
+		/*Array of house positions - used for floors*/
+		var houses = [300, 1900];
 
-		this.walls.push(new MyGame.Wall(980, this.height - 100, wLength, wWidth, "red"));
-		this.walls.push(new MyGame.Wall(980, this.height - 120, wWidth, wLength, "red"));
+		/*Houses' Walls - https://www.color-hex.com/color-palette/74708*/
+		wallColor = "#977b5f";
+		floorColor = "#816346";
 
-		this.walls.push(new MyGame.Wall(1500, this.height - 100, wLength, wWidth, "red"));
-		this.walls.push(new MyGame.Wall(1580, this.height - 120, wWidth, wLength, "red"));
-
-		this.walls.push(new MyGame.Wall(1980, this.height - 100, wLength, wWidth, "red"));
-		this.walls.push(new MyGame.Wall(1980, this.height - 120, wWidth, wLength, "red"));
-
-		this.walls.push(new MyGame.Wall(1250, this.height - 100, wLength, wWidth, "red"));
-		this.walls.push(new MyGame.Wall(1250, this.height - 120, wWidth, wLength, "red"));
-
-		this.walls.push(new MyGame.Wall(0, 0, wLength, wWidth, "red"));
-		this.walls.push(new MyGame.Wall(0, 0, wWidth, wLength, "red"));
+		this.walls.push(new MyGame.Wall(300, 300, wLength, wWidth, "red"));
+		this.walls.push(new MyGame.Wall(300, 300, wWidth, wLength, "yellow"));
+		this.walls.push(new MyGame.Wall(300, 300 + wLength - wWidth, wLength, wWidth, "blue"));
+		this.walls.push(new MyGame.Wall(300 + wLength - wWidth, 300, wWidth, wLength, "green"));
 
 		for (var i = 0; i < this.walls.length; i++) {
 			this.walls[i].draw(ctx);
