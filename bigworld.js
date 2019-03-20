@@ -157,15 +157,41 @@ MyGame.bullets = [];
 	Player.prototype.update = function(step, mapWidth, mapHeight, walls){
 		if(MyGame.controls.kA){
 			this.xPos -= this.speed * step;
+			for(var i = 0; i < walls.length; i++){
+				var w = walls[i].getCoords();
+				if(this.xPos - this.radius > w[0] && this.xPos - this.radius < w[1] 
+					&& ((this.yPos - this.radius > w[2] && this.yPos - this.radius < w[3]) || (this.yPos + this.radius > w[2] && this.yPos + this.radius < w[3]))
+					|| (this.xPos - this.radius > )) {
+					this.xPos += this.speed * step;
+				}
+			}
 		}
 		if(MyGame.controls.kD){
 			this.xPos += this.speed * step;
+			for(var i = 0; i < walls.length; i++){
+				var w = walls[i].getCoords();
+				if(this.xPos + this.radius > w[0] && this.xPos + this.radius < w[1] && ((this.yPos - this.radius > w[2] && this.yPos - this.radius < w[3]) || (this.yPos + this.radius > w[2] && this.yPos + this.radius < w[3]))){
+					this.xPos -= this.speed * step;
+				}
+			}
 		}
 		if(MyGame.controls.kW){
 			this.yPos -= this.speed * step;
+			for(var i = 0; i < walls.length; i++){
+				var w = walls[i].getCoords();
+				if(this.yPos - this.radius > w[2] && this.yPos - this.radius < w[3] && ((this.xPos - this.radius > w[0] && this.xPos - this.radius < w[1]) || (this.xPos + this.radius > w[0] && this.xPos + this.radius < w[1]))){
+					this.yPos += this.speed * step;
+				}
+			}
 		}
 		if(MyGame.controls.kS){
 			this.yPos += this.speed * step;
+			for(var i = 0; i < walls.length; i++){
+				var w = walls[i].getCoords();
+				if(this.yPos + this.radius > w[2] && this.yPos + this.radius < w[3] && ((this.xPos - this.radius > w[0] && this.xPos - this.radius < w[1]) || (this.xPos + this.radius > w[0] && this.xPos + this.radius < w[1]))){
+					this.yPos -= this.speed * step;
+				}
+			}
 		}
 
 		if(this.xPos - this.radius < 0){
@@ -324,6 +350,10 @@ MyGame.bullets = [];
 		ctx.restore();
 	}
 
+	Wall.prototype.getCoords = function(){
+		return [this.xStart, this.xEnd, this.yStart, this.yEnd];
+	}
+
 	MyGame.Wall = Wall;
 })();
 
@@ -365,20 +395,54 @@ MyGame.bullets = [];
 		}		
 		ctx.restore();
 
-		var wWidth = 20;
-		var wLength = 300;
+		var WALLS = {
+			WIDTH: 20,
+			LENGTH: 300,
+			DOOR: 100
+		}
 
-		/*Array of house positions - used for floors*/
-		var houses = [300, 1900];
+		/*Array of house coords for floors*/
+		var houses = [300,1900];
 
 		/*Houses' Walls - https://www.color-hex.com/color-palette/74708*/
 		wallColor = "#977b5f";
 		floorColor = "#816346";
 
-		this.walls.push(new MyGame.Wall(300, 300, wLength, wWidth, "red"));
-		this.walls.push(new MyGame.Wall(300, 300, wWidth, wLength, "yellow"));
-		this.walls.push(new MyGame.Wall(300, 300 + wLength - wWidth, wLength, wWidth, "blue"));
-		this.walls.push(new MyGame.Wall(300 + wLength - wWidth, 300, wWidth, wLength, "green"));
+		for(var i = 0; i < houses.length; i++){
+			for(var j = 0; j < houses.length; j++){
+				ctx.save();	    
+				ctx.beginPath();          
+				ctx.rect (houses[i], houses[j], WALLS.LENGTH + WALLS.WIDTH, WALLS.LENGTH + WALLS.WIDTH);				
+				ctx.fillStyle = floorColor;
+				ctx.fill();
+				ctx.closePath();
+				ctx.restore();
+			}
+		}
+
+		/*Top Left House*/
+		this.walls.push(new MyGame.Wall(houses[0] + WALLS.WIDTH, houses[0], WALLS.LENGTH, WALLS.WIDTH, wallColor));					//Top
+		this.walls.push(new MyGame.Wall(houses[0], houses[0], WALLS.WIDTH, WALLS.LENGTH - WALLS.DOOR, wallColor));					//Left
+		this.walls.push(new MyGame.Wall(houses[0], houses[0] + WALLS.LENGTH, WALLS.LENGTH, WALLS.WIDTH, wallColor));				//Bottom
+		this.walls.push(new MyGame.Wall(houses[0] + WALLS.LENGTH, houses[0] + WALLS.WIDTH, WALLS.WIDTH, WALLS.LENGTH, wallColor));	//Right
+
+		/*Top Right House*/
+		this.walls.push(new MyGame.Wall(houses[1] + WALLS.WIDTH + WALLS.DOOR, houses[0], WALLS.LENGTH - WALLS.DOOR, WALLS.WIDTH, wallColor));//Top
+		this.walls.push(new MyGame.Wall(houses[1], houses[0], WALLS.WIDTH, WALLS.LENGTH, wallColor));								//Left
+		this.walls.push(new MyGame.Wall(houses[1], houses[0] + WALLS.LENGTH, WALLS.LENGTH, WALLS.WIDTH, wallColor));				//Bottom
+		this.walls.push(new MyGame.Wall(houses[1] + WALLS.LENGTH, houses[0] + WALLS.WIDTH, WALLS.WIDTH, WALLS.LENGTH, wallColor));	//Right
+
+		/*Bottom Left House*/
+		this.walls.push(new MyGame.Wall(houses[0] + WALLS.WIDTH, houses[1], WALLS.LENGTH, WALLS.WIDTH, wallColor));					//Top
+		this.walls.push(new MyGame.Wall(houses[0], houses[1], WALLS.WIDTH, WALLS.LENGTH, wallColor));								//Left
+		this.walls.push(new MyGame.Wall(houses[0], houses[1] + WALLS.LENGTH, WALLS.LENGTH - WALLS.DOOR, WALLS.WIDTH, wallColor));	//Bottom
+		this.walls.push(new MyGame.Wall(houses[0] + WALLS.LENGTH, houses[1] + WALLS.WIDTH, WALLS.WIDTH, WALLS.LENGTH, wallColor));	//Right
+
+		/*Bottom Right House*/
+		this.walls.push(new MyGame.Wall(houses[1] + WALLS.WIDTH, houses[1], WALLS.LENGTH, WALLS.WIDTH, wallColor));					//Top
+		this.walls.push(new MyGame.Wall(houses[1], houses[1], WALLS.WIDTH, WALLS.LENGTH, wallColor));								//Left
+		this.walls.push(new MyGame.Wall(houses[1], houses[1] + WALLS.LENGTH, WALLS.LENGTH, WALLS.WIDTH, wallColor));				//Bottom
+		this.walls.push(new MyGame.Wall(houses[1] + WALLS.LENGTH, houses[1] + WALLS.WIDTH + WALLS.DOOR, WALLS.WIDTH, WALLS.LENGTH - WALLS.DOOR, wallColor));//Right
 
 		for (var i = 0; i < this.walls.length; i++) {
 			this.walls[i].draw(ctx);
@@ -433,6 +497,10 @@ MyGame.bullets = [];
 		ctx.drawImage(this.image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
 	}
 
+	Map.prototype.getWalls = function(){
+		return this.walls;
+	}
+
 	MyGame.Map = Map;
 
 })();
@@ -471,10 +539,12 @@ MyGame.bullets = [];
 	var gameMap = {
 		width: 2500,
 		height: 2500,
+		walls: [],
 		map: new MyGame.Map(2500,2500)
 	};
 
 	gameMap.map.generate();
+	gameMap.walls = gameMap.map.getWalls();
 
 	var player = new MyGame.Player(xPlayer, yPlayer, sPlayer, rPlayer);
 	var gun = new MyGame.Gun(xPlayer, yPlayer)
@@ -499,7 +569,7 @@ MyGame.bullets = [];
 
 	var update = function(){
 		var dBullet = [];	//Bullet indices to delete
-		player.update(step, gameMap.width, gameMap.height);
+		player.update(step, gameMap.width, gameMap.height, gameMap.walls);
 		gun.update(player.xPos, player.yPos, camera.xPos, camera.yPos);
 		for(var i = 0; i < MyGame.bullets.length; i++){
 			MyGame.bullets[i].update(step, gameMap.width, gameMap.height);
