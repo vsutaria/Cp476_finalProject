@@ -1,82 +1,637 @@
-var canvas;
-var ctx;
+window.onload = function(){
 
-/*Player and Bullet Speeds*/
-var playerSpeed = 2;
-var bulletSpeed = 80;
+window.MyGame = {};	/*Game Object*/
 
-/*Player and Mouse Coordinates*/
-var playerX;
-var playerY;
-var mouseX = 0;
-var mouseY = 0;
+/*Key Presses and Mouse Coords*/
+MyGame.controls = {
+	kW: false,
+	kA: false,
+	kS: false,
+	kD: false,
+	xMouse: 0,
+	yMouse: 0
+}
 
-/*Gun Size*/
-var gunW = 10;
-var gunH = 80;
+/*Active Bullets*/
+MyGame.bullets = [];
 
-/*Player and Bullet Radius*/
-var pRadius = 40;
-var bRadius = 10;
+/*Rectangle Object*/
+(function(){
+	function RectangleComponent(x, y,width, height) {
+		this.width = width || 0;
+		this.height = height || 0;
+		this.xStart = x || 0;
+		this.yStart = y || 0;
+		this.xEnd = x + width;
+		this.yEnd = y + height;
+	}
 
-/*Key Presses*/
-var kW = false;
-var kA = false;
-var kS = false;
-var kD = false;
+	RectangleComponent.prototype.set = function(x, y, width, height){
+		this.width = width || this.width;
+		this.height = height || this.height;
+		this.xStart = x || this.xStart;
+		this.yStart = y || this.yStart;
+		this.xEnd = this.xStart + this.width;
+		this.yEnd = this.yStart + this.height;
+	}
 
-/* Draw map flag */
-var mapFlag=false;
+	RectangleComponent.prototype.inside = function(m){
+		return (m.xStart <= this.xStart && m.xEnd >= this.xEnd &&
+			m.yStart <= this.yStart && m.yEnd >= this.yEnd);
+	}
 
-var fps = 60;	/*Frames Per Second (Refresh)*/
+	RectangleComponent.prototype.cover = function(m){
+		return(this.xStart < m.xEnd && m.xStart < this.xEnd &&
+			this.yStart < m.yEnd && m.yStart < this.yEnd);
+	}
 
-var bullets = [];	/*Bullets Spawned*/
+	MyGame.RectangleComponent = RectangleComponent;
+})();
 
-var mapObjects=new Array(); /* saving all objects drawn*/
+/*Camera Object*/
+(function(){
 
-function collision( checkingX,checkingY ){ 
-	var i;
-	var checkX=false;
-	var checkY=false;
-	var countX=0;
-	var countY=0;
-	for (i=0;i<mapObjects.length;i++){
-	
-		if (checkingX <mapObjects[i].startingX && checkingX >mapObjects[i].endingX ){
-			countX++;
+	var DIR = {
+		NONE: "none",
+		HORIZONTAL: "horizontal",
+		VERTICAL: "vertical",
+		BOTH: "both"
+	};
+
+	function Camera(xPos, yPos, cvsWidth, cvsHeight, mapWidth, mapHeight){
+		this.xPos = xPos || 0;
+		this.yPos = yPos || 0;
+
+		/*Used to detect map walls*/
+		this.xWall = 0;
+		this.yWall = 0;
+
+		/*Size of the html canvas*/
+		this.cvsWidth = cvsWidth;
+		this.cvsHeight = cvsHeight;
+
+		this.dir = DIR.BOTH;
+
+		this.following = null;
+
+		/*Viewport Rectangle*/
+		this.vpRect = new MyGame.RectangleComponent(this.xPos, this.yPos, this.cvsWidth, this.cvsHeight);
+
+		/*Map Rectangle*/
+		this.mapRect = new MyGame.RectangleComponent(0, 0, mapWidth, mapHeight);
+	}
+
+	/*Assign a player for the camera to follow*/
+	Camera.prototype.follow = function(playerObj, xWall, yWall){
+		this.following = playerObj;
+		this.xWall = xWall;
+		this.yWall = yWall;
+	}
+
+	Camera.prototype.update = function(){
+		if(this.following != null){
+			if(this.dir == DIR.HORIZONTAL || this.dir == DIR.BOTH){
+				/*Ensure the Camera does not leave the Map on x axis*/
+				if(this.following.xPos - this.xPos + this.xWall > this.cvsWidth){
+					this.xPos = this.following.xPos - this.cvsWidth + this.xWall;
+				}
+				else if(this.following.xPos - this.xWall < this.xPos){
+					this.xPos = this.following.xPos - this.xWall;
+				}
+			}
+			if(this.dir == DIR.VERTICAL || this.dir == DIR.BOTH){
+				/*Ensure the Camera does not leave the Map on y axis*/
+				if(this.following.yPos - this.yPos + this.yWall > this.cvsHeight){
+					this.yPos = this.following.yPos - this.cvsHeight + this.yWall;
+				}
+				else if(this.following.yPos - this.yWall < this.yPos){
+					this.yPos = this.following.yPos - this.yWall;
+				}
+			}
 		}
-		if (checkingY <mapObjects[i].startingY && checkingY > mapObjects[i].endingY ){
-			countY++;
-		}	
-	}
-	if (mapObjects.length==countX){
-		checkX =true;		
-	}
-	if (mapObjects.length==countY){
-		checkY =true;		
-	}
-	
-	return checkX,checkY;
-	
-}
 
-window.onload= function(){
-	var h = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+		this.vpRect.set(this.xPos, this.yPos);
 
-	canvas = document.getElementById("myCanvas");
-	canvas.setAttribute("height", 0.9 * h);
-	canvas.setAttribute("width", 0.9 * h);
-	ctx = canvas.getContext("2d");
-	playerX = canvas.width/2;
-	playerY = canvas.height/2;
+		if(!this.vpRect.inside(this.mapRect)){
+			if(this.vpRect.xStart < this.mapRect.xStart){
+				this.xPos = this.mapRect.xStart;
+			}
+			if(this.vpRect.yStart < this.mapRect.yStart){
+				this.yPos = this.mapRect.yStart;
+			}
+			if(this.vpRect.xEnd > this.mapRect.xEnd){
+				this.xPos = this.mapRect.xEnd - this.cvsWidth;
+			}
+			if(this.vpRect.yEnd > this.mapRect.yEnd){
+				this.yPos = this.mapRect.yEnd - this.cvsHeight;
+			}
+		}
+	}
+
+	MyGame.Camera = Camera;
+
+})();
+
+(function(){
+	function Player(x, y, sPlayer, rPlayer){
+		this.xPos = x;
+		this.yPos = y;
+
+		this.speed = sPlayer;
+
+		this.radius = rPlayer;
+	}
+
+	Player.prototype.update = function(step, mapWidth, mapHeight, walls){
+		if(MyGame.controls.kA){
+			this.xPos -= this.speed * step;
+			for(var i = 0; i < walls.length; i++){
+				var w = walls[i].getCoords();
+				if(this.xPos - this.radius > w[0] && this.xPos - this.radius < w[1] 
+					&& ((this.yPos - this.radius > w[2] && this.yPos - this.radius < w[3]) || (this.yPos + this.radius > w[2] && this.yPos + this.radius < w[3]))) {
+					this.xPos += this.speed * step;
+				}
+			}
+		}
+		if(MyGame.controls.kD){
+			this.xPos += this.speed * step;
+			for(var i = 0; i < walls.length; i++){
+				var w = walls[i].getCoords();
+				if(this.xPos + this.radius > w[0] && this.xPos + this.radius < w[1] && ((this.yPos - this.radius > w[2] && this.yPos - this.radius < w[3]) || (this.yPos + this.radius > w[2] && this.yPos + this.radius < w[3]))){
+					this.xPos -= this.speed * step;
+				}
+			}
+		}
+		if(MyGame.controls.kW){
+			this.yPos -= this.speed * step;
+			for(var i = 0; i < walls.length; i++){
+				var w = walls[i].getCoords();
+				if(this.yPos - this.radius > w[2] && this.yPos - this.radius < w[3] && ((this.xPos - this.radius > w[0] && this.xPos - this.radius < w[1]) || (this.xPos + this.radius > w[0] && this.xPos + this.radius < w[1]))){
+					this.yPos += this.speed * step;
+				}
+			}
+		}
+		if(MyGame.controls.kS){
+			this.yPos += this.speed * step;
+			for(var i = 0; i < walls.length; i++){
+				var w = walls[i].getCoords();
+				if(this.yPos + this.radius > w[2] && this.yPos + this.radius < w[3] && ((this.xPos - this.radius > w[0] && this.xPos - this.radius < w[1]) || (this.xPos + this.radius > w[0] && this.xPos + this.radius < w[1]))){
+					this.yPos -= this.speed * step;
+				}
+			}
+		}
+
+		if(this.xPos - this.radius < 0){
+			this.xPos = this.radius;
+		}
+		if(this.xPos + this.radius > mapWidth){
+			this.xPos = mapWidth - this.radius;
+		}
+		if(this.yPos - this.radius < 0){
+			this.yPos = this.radius;
+		}
+		if(this.yPos + this.radius > mapHeight){
+			this.yPos = mapHeight - this.radius;
+		}
+	}
+
+	Player.prototype.draw = function(ctx, xCvs, yCvs){
+		ctx.save();
+		ctx.beginPath();
+		ctx.arc(this.xPos - xCvs, this.yPos - yCvs, this.radius, 0, Math.PI*2);
+		ctx.fillStyle = "#0095DD";
+		ctx.fill();
+		ctx.strokeStyle = "#000000"
+		ctx.stroke();
+		ctx.closePath();
+		ctx.restore();
+	};
+
+	Player.prototype.getPos = function(){
+		return [~~(this.xPos/1), ~~(this.yPos/1)];
+	}
+
+	MyGame.Player = Player;
+})();
+
+(function(){
+	function Gun(x, y){
+		this.xPos = x;
+		this.yPos = y;
+
+		this.width = 10;
+		this.height = 80;
+
+		this.angle = 0;
+	}
+
+	Gun.prototype.update = function(x, y, xCvs, yCvs){
+		this.xPos = x;
+		this.yPos = y;
+
+		this.angle = Math.atan(~~((MyGame.controls.yMouse - (this.yPos - yCvs))/1) / ~~((MyGame.controls.xMouse - (this.xPos - xCvs))/1)) + (Math.PI/2);
+
+		if(~~((MyGame.controls.xMouse - (this.xPos - xCvs))/1) >= 0){
+			this.angle += Math.PI;
+		}
+	}
+
+	Gun.prototype.draw = function(ctx, xCvs, yCvs){
+		ctx.save();
+		ctx.translate(this.xPos - xCvs, this.yPos - yCvs);
+		ctx.rotate(this.angle);
+
+		ctx.beginPath();
+		ctx.rect(-this.width/2, 0, this.width, this.height);
+		ctx.fillStyle = "#873600";
+		ctx.fill();
+		ctx.strokeStyle = "#000000"
+		ctx.stroke();
+		ctx.closePath();
+
+		ctx.restore();
+		document.querySelector("#coords").innerHTML = "( " + ~~(this.xPos/1 - xCvs) + ", " + ~~(this.yPos/1 - yCvs) + " )" + "( " + MyGame.controls.xMouse + ", " + MyGame.controls.yMouse + " )" + "( " + this.angle  + " )";	// Report mouse coordinates in the canvas
+	};
+
+	Gun.prototype.getHeight = function(){
+		return this.height;
+	}
+
+	Gun.prototype.getAngle = function(){
+		return this.angle;
+	}
+
+	MyGame.Gun = Gun;
+})();
+
+(function(){
+	function Bullet(xp, yp, xd, yd, sBullet, rBullet, walls){
+		this.xPos = xp;
+		this.yPos = yp;
+
+		this.xDir = xd;
+		this.yDir = yd
+
+		this.speed = sBullet;
+		this.radius = rBullet;
+
+		this.spawned = true;
+
+	}
+
+	Bullet.prototype.update = function(step, mapWidth, mapHeight){
+		this.xPos += this.xDir * this.speed * step;
+		this.yPos += this.yDir * this.speed * step;
+
+		if(this.xPos - this.radius < 0){
+			this.spawned = false;
+		}
+		if(this.xPos + this.radius > mapWidth){
+			this.spawned = false;
+		}
+		if(this.yPos - this.radius < 0){
+			this.spawned = false;
+		}
+		if(this.yPos + this.radius > mapHeight){
+			this.spawned = false;
+		}
+	}
+
+	Bullet.prototype.draw = function(ctx, xCvs, yCvs){
+		ctx.save();
+		ctx.beginPath();
+		ctx.arc(this.xPos - xCvs, this.yPos - yCvs, this.radius, 0, Math.PI*2);
+		ctx.fillStyle = "#000000";
+		ctx.fill();
+		ctx.closePath();
+		ctx.restore();
+	};
+
+	Bullet.prototype.getSpawned = function(){
+		return this.spawned;
+	}
+
+	MyGame.Bullet = Bullet;
+})();
+
+(function(){
+	function Wall(x, y, width, height, color){
+		this.width = width || 0;
+		this.height = height || 0;
+		this.xStart = x || 0;
+		this.yStart = y || 0;
+		this.xEnd = x + width;
+		this.yEnd = y + height;
+		this.color = color;
+	}
+
+	Wall.prototype.draw = function(ctx){
+		ctx.save();
+		ctx.beginPath();			        
+		ctx.rect (this.xStart, this.yStart, this.width, this.height);
+		ctx.fillStyle = this.color;
+		ctx.fill();
+		ctx.strokeStyle = "#000000";
+		ctx.stroke();
+		ctx.closePath();
+		ctx.restore();
+	}
+
+	Wall.prototype.getCoords = function(){
+		return [this.xStart, this.xEnd, this.yStart, this.yEnd];
+	}
+
+	MyGame.Wall = Wall;
+})();
+
+(function(){
+	function Map(width, height){
+		this.width = width;
+		this.height = height;
+		this.walls = [];
+
+		this.color = "#00A102"
+
+		this.image = null;
+	}
+
+	Map.prototype.generate = function(){
+		var ctx = document.createElement("canvas").getContext("2d");
+		ctx.canvas.width = this.width;
+		ctx.canvas.height = this.height;
+
+		// var imgBg = new Image();
+		// imgBg.src = "images/background.png"; /*https://www.toptal.com/designers/subtlepatterns/vintage-concrete*/
+
+
+		var rows = ~~(this.width/200) + 1;
+		var cols = ~~(this.height/200) + 1;
+
+		ctx.save();			
+		ctx.fillStyle = this.color;		    
+		for (var x = 0, i = 0; i < rows; x+=200, i++) {
+			ctx.beginPath();			
+			for (var y = 0, j = 0; j < cols; y += 200, j++) {            
+				ctx.rect (x, y, 200, 200);				
+			}
+			ctx.fillStyle = this.color;
+			ctx.fill();
+			ctx.strokeStyle = "#009002";
+			ctx.stroke();
+			ctx.closePath();			
+		}		
+		ctx.restore();
+
+		var WALLS = {
+			WIDTH: 20,
+			LENGTH: 300,
+			DOOR: 100
+		}
+
+		/*Array of house coords for floors*/
+		var houses = [300,1900];
+
+		/*Houses' Walls - https://www.color-hex.com/color-palette/74708*/
+		wallColor = "#977b5f";
+		floorColor = "#816346";
+
+		for(var i = 0; i < houses.length; i++){
+			for(var j = 0; j < houses.length; j++){
+				ctx.save();	    
+				ctx.beginPath();          
+				ctx.rect (houses[i], houses[j], WALLS.LENGTH + WALLS.WIDTH, WALLS.LENGTH + WALLS.WIDTH);				
+				ctx.fillStyle = floorColor;
+				ctx.fill();
+				ctx.closePath();
+				ctx.restore();
+			}
+		}
+
+		/*Top Left House*/
+		this.walls.push(new MyGame.Wall(houses[0] + WALLS.WIDTH, houses[0], WALLS.LENGTH, WALLS.WIDTH, wallColor));					//Top
+		this.walls.push(new MyGame.Wall(houses[0], houses[0], WALLS.WIDTH, WALLS.LENGTH - WALLS.DOOR, wallColor));					//Left
+		this.walls.push(new MyGame.Wall(houses[0], houses[0] + WALLS.LENGTH, WALLS.LENGTH, WALLS.WIDTH, wallColor));				//Bottom
+		this.walls.push(new MyGame.Wall(houses[0] + WALLS.LENGTH, houses[0] + WALLS.WIDTH, WALLS.WIDTH, WALLS.LENGTH, wallColor));	//Right
+
+		/*Top Right House*/
+		this.walls.push(new MyGame.Wall(houses[1] + WALLS.WIDTH + WALLS.DOOR, houses[0], WALLS.LENGTH - WALLS.DOOR, WALLS.WIDTH, wallColor));//Top
+		this.walls.push(new MyGame.Wall(houses[1], houses[0], WALLS.WIDTH, WALLS.LENGTH, wallColor));								//Left
+		this.walls.push(new MyGame.Wall(houses[1], houses[0] + WALLS.LENGTH, WALLS.LENGTH, WALLS.WIDTH, wallColor));				//Bottom
+		this.walls.push(new MyGame.Wall(houses[1] + WALLS.LENGTH, houses[0] + WALLS.WIDTH, WALLS.WIDTH, WALLS.LENGTH, wallColor));	//Right
+
+		/*Bottom Left House*/
+		this.walls.push(new MyGame.Wall(houses[0] + WALLS.WIDTH, houses[1], WALLS.LENGTH, WALLS.WIDTH, wallColor));					//Top
+		this.walls.push(new MyGame.Wall(houses[0], houses[1], WALLS.WIDTH, WALLS.LENGTH, wallColor));								//Left
+		this.walls.push(new MyGame.Wall(houses[0], houses[1] + WALLS.LENGTH, WALLS.LENGTH - WALLS.DOOR, WALLS.WIDTH, wallColor));	//Bottom
+		this.walls.push(new MyGame.Wall(houses[0] + WALLS.LENGTH, houses[1] + WALLS.WIDTH, WALLS.WIDTH, WALLS.LENGTH, wallColor));	//Right
+
+		/*Bottom Right House*/
+		this.walls.push(new MyGame.Wall(houses[1] + WALLS.WIDTH, houses[1], WALLS.LENGTH, WALLS.WIDTH, wallColor));					//Top
+		this.walls.push(new MyGame.Wall(houses[1], houses[1], WALLS.WIDTH, WALLS.LENGTH, wallColor));								//Left
+		this.walls.push(new MyGame.Wall(houses[1], houses[1] + WALLS.LENGTH, WALLS.LENGTH, WALLS.WIDTH, wallColor));				//Bottom
+		this.walls.push(new MyGame.Wall(houses[1] + WALLS.LENGTH, houses[1] + WALLS.WIDTH + WALLS.DOOR, WALLS.WIDTH, WALLS.LENGTH - WALLS.DOOR, wallColor));//Right
+
+		for (var i = 0; i < this.walls.length; i++) {
+			this.walls[i].draw(ctx);
+		}
+
+/*
+		ctx.save();
+		for(var x = 0, i = 0; i < rows; x += 400, i++){
+			ctx.beginPath();
+			for(var y = 0, j = 0; j < cols; y += 400, j++){
+				ctx.drawImage(imgBg, x, y);
+			}
+			ctx.closePath();
+		}
+		ctx.restore();*/
+
+		/*ctx.save();
+		imgBg.onload = function(){
+			ctx.fillStyle = ctx.createPattern(imgBg, 'repeat');
+			ctx.fillRect(0,0,400,400);
+		}
+		ctx.restore();*/
+
+		this.image = new Image();
+		this.image.src = ctx.canvas.toDataURL("image/png");
+
+		ctx = null;
+	}
+
+	Map.prototype.draw = function(ctx, xPos, yPos){
+		var sx, sy, dx, dy;
+		var sWidth, sHeight, dWidth, dHeight;
+
+		sx = xPos;
+		sy = yPos;
+
+		sWidth = ctx.canvas.width;
+		sHeight = ctx.canvas.height;
+
+		if(this.image.width - sx < sWidth){
+			sWidth = this.image.width - sx;
+		}
+		if(this.image.height - sy < sHeight){
+			sHeight = this.image.height - sy;
+		}
+
+		dx = 0;
+		dy = 0;
+		dWidth = sWidth;
+		dHeight = sHeight;
+
+		ctx.drawImage(this.image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
+	}
+
+	Map.prototype.getWalls = function(){
+		return this.walls;
+	}
+
+	MyGame.Map = Map;
+
+})();
+
+(function(){
+	/*Game Canvas*/
+	var canvas = document.getElementById("myCanvas");
+	var ctx = canvas.getContext("2d");
+
+	var cHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+	canvas.setAttribute("height", 0.9 * cHeight);
+	canvas.setAttribute("width", 0.9 * cHeight);
+
+	/*Frames Per Second (Refresh)*/
+	var fps = 60;
+	var interval = 1000/fps;
+	var step = interval/1000;
+
+	/*Player and Mouse Coordinates*/
+	var xPlayer = canvas.width/2;
+	var yPlayer = canvas.height/2;
+
+	/*Player and Bullet Radius*/
+	var rPlayer = 40;
+	var rBullet = 10;
+
+	MyGame.rBullet = rBullet;
+
+	/*Plater and Bullet Speeds*/
+	var sBullet = 3000;
+	var sPlayer = 200;
+
+	MyGame.sBullet = sBullet;
+
+	/*Initialize Game Map Size*/
+	var gameMap = {
+		width: 2500,
+		height: 2500,
+		walls: [],
+		map: new MyGame.Map(2500,2500)
+	};
+
+	gameMap.map.generate();
+	gameMap.walls = gameMap.map.getWalls();
+
+	var player = new MyGame.Player(xPlayer, yPlayer, sPlayer, rPlayer);
+	var gun = new MyGame.Gun(xPlayer, yPlayer)
+
+	var camera = new MyGame.Camera(0, 0, canvas.width, canvas.height, gameMap.width, gameMap.height);
+	camera.follow(player, canvas.width/2, canvas.height/2);
+
 	canvas.addEventListener("mousemove", aimHandler, false);
-	canvas.addEventListener("click", fireHandler, false);
+	canvas.addEventListener("click", function(e){
+		var i;
+		var pPos = player.getPos();
+		var angle = gun.getAngle();
 
+		xp = pPos[0] + gun.getHeight() * Math.cos(angle + Math.PI/2);	//Bullet xPos
+		yp = pPos[1] + gun.getHeight() * Math.sin(angle + Math.PI/2);	//Bullet yPos
+
+		xd = (xp - pPos[0])/cHeight;	//Bullet xDir
+		yd = (yp - pPos[1])/cHeight;	//Bullet yDir
+
+		MyGame.bullets[MyGame.bullets.length] = new MyGame.Bullet(xp,yp,xd,yd,sBullet,rBullet);
+	}, false);
+
+	var update = function(){
+		var dBullet = [];	//Bullet indices to delete
+		player.update(step, gameMap.width, gameMap.height, gameMap.walls);
+		gun.update(player.xPos, player.yPos, camera.xPos, camera.yPos);
+		for(var i = 0; i < MyGame.bullets.length; i++){
+			MyGame.bullets[i].update(step, gameMap.width, gameMap.height);
+			if(!MyGame.bullets[i].getSpawned()){
+				dBullet[dBullet.length] = i;
+			}
+		}
+		for(var i = 0; i < dBullet.length; i++){
+			MyGame.bullets.splice(dBullet[i] - i, 1);
+		}
+		camera.update();
+	}
+
+	var draw = function(){
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+		gameMap.map.draw(ctx, camera.xPos, camera.yPos);
+		player.draw(ctx, camera.xPos, camera.yPos);
+		gun.draw(ctx, camera.xPos, camera.yPos);
+		for(var i = 0; i < MyGame.bullets.length; i++){
+			MyGame.bullets[i].draw(ctx, camera.xPos, camera.yPos);
+		}
+	}
+
+	var playGame = function(){
+		update();
+		draw();
+	}
+
+	MyGame.play = function(){
+		setInterval(function(){playGame();}, interval);
+	}
+})();
+
+window.addEventListener("keydown", kDownHandler, false);
+window.addEventListener("keyup", kUpHandler, false);
+
+function kDownHandler(e) {
+    if(e.key == "w" || e.key == "W") {
+        MyGame.controls.kW = true;
+    }
+    if(e.key == "a" || e.key == "A") {
+        MyGame.controls.kA = true;
+    }
+    if(e.key == "s" || e.key == "S") {
+        MyGame.controls.kS = true;
+    }
+    if(e.key == "d" || e.key == "D") {
+        MyGame.controls.kD = true;
+    }
 }
 
-/* Attach event listeners to the document */
-document.addEventListener("keydown", kDownHandler, false);
-document.addEventListener("keyup", kUpHandler, false);
+function kUpHandler(e) {
+    if(e.key == "w" || e.key == "W") {
+        MyGame.controls.kW = false;
+    }
+    else if(e.key == "a" || e.key == "A") {
+        MyGame.controls.kA = false;
+    }
+    else if(e.key == "s" || e.key == "S") {
+        MyGame.controls.kS = false;
+    }
+    else if(e.key == "d" || e.key == "D") {
+        MyGame.controls.kD = false;
+    }
+}
+
+function aimHandler(e){
+	var c = e.target.getBoundingClientRect();
+	MyGame.controls.xMouse = Math.floor(e.clientX - c.left);
+	MyGame.controls.yMouse = Math.floor(e.clientY - c.top);
+}
+
+MyGame.play();
+}
 
 /* Set the width of the side navigation to 250px and the left margin of the page content to 250px */
 function openNav() {
@@ -89,372 +644,3 @@ function closeNav() {
   document.getElementById("mySidenav").style.width = "0";
   document.getElementById("main").style.marginLeft = "0";
 }
-
-function drawPlayer() {
-    ctx.beginPath();
-    ctx.arc(playerX, playerY, pRadius, 0, Math.PI*2);
-    ctx.fillStyle = "#0095DD";
-    ctx.fill();
-    ctx.strokeStyle = "#000000"
-    ctx.stroke();
-    ctx.closePath();
-}
-
-function drawGun() {
-	ctx.save();
-	subY = mouseY - playerY;
-	subX = mouseX - playerX;
-
-	/* Angle between mouse and player */
-	var angle = Math.atan(subY/subX) + (Math.PI/2);
-
-	if (subX >= 0){
-		angle += Math.PI;	// Add 180 degrees if mouse is to the right of the player
-	}
-
-
-	ctx.translate(playerX, playerY);
-	ctx.rotate(angle);
-
-    ctx.beginPath();
-    ctx.rect(-gunW/2, 0, gunW, gunH);
-    ctx.fillStyle = "#873600";
-    ctx.fill();
-    ctx.strokeStyle = "#000000"
-    ctx.stroke();
-    ctx.closePath();
-
-    ctx.restore();
-}
-
-function drawBullets(){
-	var i;
-
-	for (i = 0; i < bullets.length; i++){
-		ctx.beginPath();
-	    ctx.arc(bullets[i][0], bullets[i][1], bRadius, 0, Math.PI*2);
-	    ctx.fillStyle = "#000000";
-	    ctx.fill();
-	    ctx.closePath();
-	}
-}
-class RectangleComponent{
-	constructor(x, y,color,width, height) {
-		this.width = width;
-		this.height = height;
-		this.startX = x;
-		this.startY = y;
-		this.endX = x +width;
-		this.endY = y +height;
-		
-		this.color=color;
-		ctx.beginPath();
-		ctx.fillStyle = this.color;
-		ctx.fillRect(this.startX, this.startY, this.width, this.height);
-		ctx.closePath();
-	}
-	get startingX() {
-		return this.startX;
-	}
-	get startingY() {
-		return this.startY;
-	}	
-	get endingX() {
-		return this.endX;
-	}
-	get endingY() {
-		return this.endX;
-	}
-}
-function drawMap(){
-	/*Control the size of the obstacles*/
-	var obstacle1=100;
-	var obstacle2=20;	
-	
-	/*Control the size of the map not the canvas*/
-	var mapMaxX=2500;
-	var mapMinX=-2500;
-	var mapMaxY=2500;
-	var mapMinY=-2500;
-	var mapMinY=-2500;
-
-	var mapCenterX=0;
-	var mapCenterY=0;
-	/*top line 1st  obstacle*/
-	var rect1 = new RectangleComponent(mapMinX+500,mapMaxY-100,"red",obstacle1,obstacle2);
-	mapObjects[0]=rect1;
-	var rect2 = new RectangleComponent(mapMinX+580,mapMaxY-120,"red",obstacle2,obstacle1);
-	mapObjects[1]=rect2;
-	
-	/*top line 2nd  obstacle*/
-	var rect3 = new RectangleComponent((mapMinX+1000)-80,mapMaxY-100,"red",obstacle1,obstacle2);
-	mapObjects[2]=rect3;
-	var rect4 = new RectangleComponent((mapMinX+1000)-80,mapMaxY-120,"red",obstacle2,obstacle1);
-	mapObjects[3]=rect4;
-	
-	/* /*top line 3rd  obstacle*/
-	var rect9 = new RectangleComponent(mapMinX+1500,mapMaxY-100,"red",obstacle1,obstacle2);
-	mapObjects[4]=rect9;
-	var rect10 = new RectangleComponent(mapMinX+1580,mapMaxY-120,"red",obstacle2,obstacle1);
-	mapObjects[5]=rect10;
-	
-	/*top line 4th  obstacle*/
-	var rect13 = new RectangleComponent((mapMinX+2000)-80,mapMaxY-100,"red",obstacle1,obstacle2);
-	mapObjects[6]=rect13;
-	var rect14 = new RectangleComponent((mapMinX+2000)-80,mapMaxY-120,"red",obstacle2,obstacle1);
-	mapObjects[7]=rect14;
-	
-	/*top line 5th  obstacle*/
-	var rect17 = new RectangleComponent(mapCenterX,mapMaxY-100,"red",obstacle1,obstacle2);
-	mapObjects[8]=rect17;
-	var rect18 = new RectangleComponent(mapCenterX,mapMaxY-120,"red",obstacle2,obstacle1);
-	mapObjects[9]=rect18;
-	
-	/*top line 6th  obstacle*/
-	var rect19 = new RectangleComponent((mapMaxX-2000)-80,mapMaxY-100,"red",obstacle1,obstacle2);
-	mapObjects[10]=rect19;
-	var rect20 = new RectangleComponent((mapMaxX-2000)-80,mapMaxY-120,"red",obstacle2,obstacle1);
-	mapObjects[11]=rect20;
-	
-	/*top line 7th  obstacle*/
-	var rect21 = new RectangleComponent(mapMaxX-1500,mapMaxY-100,"red",obstacle1,obstacle2);
-	mapObjects[12]=rect21;
-	var rect22 = new RectangleComponent(mapMaxX-1580,mapMaxY-120,"red",obstacle2,obstacle1);
-	mapObjects[13]=rect22;
-	
-	/*top line 8th  obstacle*/
-	var rect23 = new RectangleComponent((mapMaxX-2000)-80,mapMaxY-100,"red",obstacle1,obstacle2);
-	mapObjects[14]=rect23;
-	var rect24 = new RectangleComponent((mapMaxX-2000)-80,mapMaxY-120,"red",obstacle2,obstacle1);
-	mapObjects[15]=rect24;
-	
-	/*top line 9th  obstacle*/
-	var rect35 = new RectangleComponent(mapMaxX-500,mapMaxY-100,"red",obstacle1,obstacle2);
-	mapObjects[16]=rect35;
-	var rect36 = new RectangleComponent(mapMaxX-580,mapMaxY-120,"red",obstacle2,obstacle1);
-	mapObjects[17]=rect36;
-	
-	/*bottom line 1st  obstacle*/
-	var rect5 = new RectangleComponent(mapMinX+500,mapMinY+120,"red",obstacle1,obstacle2);
-	mapObjects[18]=rect5;
-	var rect6 = new RectangleComponent(mapMinX+500,mapMinY+220,"red",obstacle2,obstacle1);
-	mapObjects[19]=rect6;
-	/*bottom line 2nd  obstacle*/
-	var rect7 = new RectangleComponent((mapMinX+1000)-80,mapMinY+120,"red",obstacle1,obstacle2);
-	mapObjects[20]=rect7;
-	var rect8 = new RectangleComponent((mapMinX+1000),mapMinY+220,"red",obstacle2,obstacle1);
-	mapObjects[21]=rect8;	
-	/*bottom line 3rd  obstacle*/
-	var rect11 = new RectangleComponent(mapMinX+1500,mapMinY+120,"red",obstacle1,obstacle2);
-	mapObjects[22]=rect11;
-	var rect12 = new RectangleComponent(mapMinX+1500,mapMinY+220,"red",obstacle2,obstacle1);
-	mapObjects[23]=rect12;
-	
-	/*bottom line 4th  obstacle*/
-	var rect15 = new RectangleComponent((mapMinX+2000)-80,mapMinY+120,"red",obstacle1,obstacle2);
-	mapObjects[24]=rect15;
-	var rect16 = new RectangleComponent((mapMinX+2000),mapMinY+220,"red",obstacle2,obstacle1);
-	mapObjects[25]=rect16;	
-	
-	/*bottom line 5th  obstacle*/
-	var rect25 = new RectangleComponent(mapCenterX,mapMinY+120,"red",obstacle1,obstacle2);
-	mapObjects[26]=rect25;
-	var rect26 = new RectangleComponent(mapCenterX,mapMinY+220,"red",obstacle2,obstacle1);
-	mapObjects[27]=rect26;
-	/*bottom line 6th  obstacle*/
-	var rect27 = new RectangleComponent((mapMaxX-2000)-80,mapMinY+120,"red",obstacle1,obstacle2);
-	mapObjects[28]=rect27;
-	var rect28 = new RectangleComponent((mapMaxX-2000),mapMinY+220,"red",obstacle2,obstacle1);
-	mapObjects[29]=rect28;	
-	/*bottom line 7th  obstacle*/
-	var rect29 = new RectangleComponent(mapMaxX-1500,mapMinY+120,"red",obstacle1,obstacle2);
-	mapObjects[30]=rect29;
-	var rect30 = new RectangleComponent(mapMaxX-1500,mapMinY+220,"red",obstacle2,obstacle1);
-	mapObjects[31]=rect30;
-	
-	/*bottom line 8th  obstacle*/
-	var rect31 = new RectangleComponent((mapMaxX-1000)-80,mapMinY+120,"red",obstacle1,obstacle2);
-	mapObjects[32]=rect31;
-	var rect32 = new RectangleComponent((mapMaxX-1000),mapMinY+220,"red",obstacle2,obstacle1);
-	mapObjects[33]=rect32;	
-	
-	/*bottom line 9th  obstacle*/
-	var rect33 = new RectangleComponent(mapMaxX-500,mapMinY+120,"red",obstacle1,obstacle2);
-	mapObjects[34]=rect33;
-	var rect34 = new RectangleComponent(mapMaxX-500,mapMinY+220,"red",obstacle2,obstacle1);
-	mapObjects[35]=rect34;
-	
-	/* The house in the left*/
-	/*top wall*/
-	var house1Wall1= new RectangleComponent((mapMinX/2)+200,(mapCenterY)-200,"Chocolate",400,20);
-	mapObjects[36]=house1Wall1;
-	/*left side wall*/
-	var house1Wall2 = new RectangleComponent((mapMinX/2)+200,(mapCenterY)-180,"Chocolate",20,400);
-	mapObjects[37]=house1Wall2;
-	/*bottom wall*/
-	var house1Wall3= new RectangleComponent((mapMinX/2)+200,(mapCenterY)+220,"Chocolate",300,20);
-	mapObjects[38]=house1Wall3;
-	/*right side wall*/
-	var house1Wall4 = new RectangleComponent((mapMinX/2)-180,(mapCenterY)-180,"Chocolate",20,400);
-	mapObjects[39]=house1Wall4;
-	
-	/*door side wall*/
-	var house1Door = new RectangleComponent((mapMinX/2)-180,(mapCenterY)+220,"brown",20,75);
-	mapObjects[40]=house1Door;
-	
-	/* The house in the middle*/
-	/*top wall*/
-	var house2Wall1= new RectangleComponent((mapCenterX)-100,(mapCenterY)-200,"Chocolate",300,20);
-	
-	mapObjects[41]=house2Wall1;
-	/*left side wall*/
-	var house2Wall2 = new RectangleComponent((mapCenterX)-200,(mapCenterY)-180,"Chocolate",20,400);
-	mapObjects[42]=house2Wall2;
-	
-	/*bottom wall*/
-	var house2Wall3= new RectangleComponent((mapCenterX)-200,(mapCenterY)+220,"Chocolate",300,20);
-	mapObjects[43]=house2Wall3;
-	/*right side wall*/
-	var house2Wall4 = new RectangleComponent((mapCenterX)+180,(mapCenterY)-180,"Chocolate",20,400);
-	mapObjects[44]=house2Wall4;
-	
-	/*door side wall*/
-	var house2Door = new RectangleComponent((mapCenterX)+180,(mapCenterY)+220,"brown",20,75);
-	mapObjects[45]=house2Door;
-	/*door side wall*/
-	var house2Door2 = new RectangleComponent((mapCenterX)-200,(mapCenterY)-250,"brown",20,75);
-	mapObjects[46]=house2Door2;
-	
-	
-	/* The house in the right*/
-	/*top wall*/  
-	var house3Wall1= new RectangleComponent((mapMaxX/2)-200,(mapCenterY)-200,"Chocolate",300,20);
-	mapObjects[47]=house3Wall1;
-	/*left side wall*/
-	var house3Wall2 = new RectangleComponent((mapMaxX/2)-200,(mapCenterY)-180,"Chocolate",20,400);
-	mapObjects[48]=house3Wall2;
-	/*bottom wall*/
-	var house3Wall3= new RectangleComponent((mapMaxX/2)-200,(mapCenterY)+220,"Chocolate",400,20);
-	mapObjects[49]=house3Wall3;
-	/*right side wall*/
-	var house3Wall4 = new RectangleComponent((mapMaxX/2)+180,(mapCenterY)-180,"Chocolate",20,400);
-	mapObjects[50]=house3Wall4;
-	
-	/*door side wall*/
-	var house3Door = new RectangleComponent((mapMaxX/2)+180,(mapCenterY)-250,"brown",20,75);
-	mapObjects[51]=house3Door; 
-	
-	
-}
-function draw() {
-	var del = [];
-	var flag = false;
-	var i;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-	//if (flag==false){
-	drawMap();
-		//mapFlag=true;
-		
-	//}
-    drawPlayer();
-    drawGun();
-    drawBullets();
-
-    
-    /* Recalculate player positions */
-    if(kW && playerY - playerSpeed > 0+pRadius) {
-        playerY -= playerSpeed;
-    }
-    if(kS && playerY + playerSpeed < canvas.height-pRadius) {
-        playerY += playerSpeed;
-    }
-    if(kA && playerX - playerSpeed > 0+pRadius) {
-        playerX -= playerSpeed;
-    }
-    if(kD && playerX + playerSpeed < canvas.width-pRadius) {
-        playerX += playerSpeed;
-    }
-
-    /* Recalculate bullet positions */
-    for (i = 0; i < bullets.length; i++){
-		if((bullets[i][0] + bullets[i][2] * bulletSpeed > 0+bRadius) && (bullets[i][0] + bullets[i][2] * bulletSpeed < canvas.width-bRadius)) {
-        	bullets[i][0] += bullets[i][2] * bulletSpeed;
-	    }
-	    else{
-	    	del[del.length] = i;
-	    	flag = true;
-	    }
-	    if((bullets[i][1] + bullets[i][3] * bulletSpeed > 0+bRadius) && (bullets[i][1] + bullets[i][3] * bulletSpeed < canvas.height-bRadius)) {
-        	bullets[i][1] += bullets[i][3] * bulletSpeed;
-	    }
-	    else{
-	    	if(!flag){	// Avoid adding the same bullet twice
-	    		del[del.length] = i;
-	    	}
-	    	flag = false;
-	    }
-	}
-
-	for (i = 0; i < del.length; i++){
-		bullets.splice(del[i] - i, 1);	// Remove bullets that hit objects
-	}
-}
-
-function kDownHandler(e) {
-    if(e.key == "w" || e.key == "W") {
-        kW = true;
-    }
-    if(e.key == "a" || e.key == "A") {
-        kA = true;
-    }
-    if(e.key == "s" || e.key == "S") {
-        kS = true;
-    }
-    if(e.key == "d" || e.key == "D") {
-        kD = true;
-    }
-}
-
-function kUpHandler(e) {
-    if(e.key == "w" || e.key == "W") {
-        kW = false;
-    }
-    else if(e.key == "a" || e.key == "A") {
-        kA = false;
-    }
-    else if(e.key == "s" || e.key == "S") {
-        kS = false;
-    }
-    else if(e.key == "d" || e.key == "D") {
-        kD = false;
-    }
-}
-
-function aimHandler(e){
-	var c = e.target.getBoundingClientRect();
-	mouseX = Math.floor(e.clientX - c.left);
-	mouseY = Math.floor(e.clientY - c.top);
-	document.querySelector("#coords").innerHTML = "( " + mouseX + ", " + mouseY + " )";	// Report mouse coordinates in the canvas
-}
-
-function fireHandler(e){
-	var i;
-	var subX = mouseX - playerX;
-	var subY = mouseY - playerY;
-	var angle = Math.atan(subY/subX);
-
-	if (subX < 0){
-		angle += Math.PI;
-	}
-
-	bullets[bullets.length] = [];
-
-	bullets[bullets.length-1][0] = playerX + gunH * Math.cos(angle);	//Bullet xPos
-	bullets[bullets.length-1][1] = playerY + gunH * Math.sin(angle);	//Bullet yPos
-
-	bullets[bullets.length-1][2] = (bullets[bullets.length-1][0] - playerX)/canvas.width;	//Bullet xDir
-	bullets[bullets.length-1][3] = (bullets[bullets.length-1][1] - playerY)/canvas.height;	//Bullet yDir
-}
-
-
-setInterval(draw, 1000/fps);
