@@ -148,7 +148,7 @@ MyGame.bullets = [];
 			for(var i = 0; i < walls.length; i++){
 				var w = walls[i].getCoords();
 				if(this.xPos - this.radius > w[0] && this.xPos - this.radius < w[1] 
-					&& ((this.yPos - this.radius > w[2] && this.yPos - this.radius < w[3]) || (this.yPos + this.radius > w[2] && this.yPos + this.radius < w[3]))) {
+					&& ((this.yPos - this.radius > w[2] && this.yPos - this.radius < w[3]) || (this.yPos + this.radius > w[2] && this.yPos + this.radius < w[3]) || (this.yPos - this.radius < w[2] && this.yPos + this.radius > w[3]))) {
 					this.xPos += this.speed * step;
 				}
 			}
@@ -157,7 +157,7 @@ MyGame.bullets = [];
 			this.xPos += this.speed * step;
 			for(var i = 0; i < walls.length; i++){
 				var w = walls[i].getCoords();
-				if(this.xPos + this.radius > w[0] && this.xPos + this.radius < w[1] && ((this.yPos - this.radius > w[2] && this.yPos - this.radius < w[3]) || (this.yPos + this.radius > w[2] && this.yPos + this.radius < w[3]))){
+				if(this.xPos + this.radius > w[0] && this.xPos + this.radius < w[1] && ((this.yPos - this.radius > w[2] && this.yPos - this.radius < w[3]) || (this.yPos + this.radius > w[2] && this.yPos + this.radius < w[3]) || (this.yPos - this.radius < w[2] && this.yPos + this.radius > w[3]))){
 					this.xPos -= this.speed * step;
 				}
 			}
@@ -166,7 +166,7 @@ MyGame.bullets = [];
 			this.yPos -= this.speed * step;
 			for(var i = 0; i < walls.length; i++){
 				var w = walls[i].getCoords();
-				if(this.yPos - this.radius > w[2] && this.yPos - this.radius < w[3] && ((this.xPos - this.radius > w[0] && this.xPos - this.radius < w[1]) || (this.xPos + this.radius > w[0] && this.xPos + this.radius < w[1]))){
+				if(this.yPos - this.radius > w[2] && this.yPos - this.radius < w[3] && ((this.xPos - this.radius > w[0] && this.xPos - this.radius < w[1]) || (this.xPos + this.radius > w[0] && this.xPos + this.radius < w[1]) || (this.xPos - this.radius < w[0] && this.xPos + this.radius > w[1]))){
 					this.yPos += this.speed * step;
 				}
 			}
@@ -175,7 +175,7 @@ MyGame.bullets = [];
 			this.yPos += this.speed * step;
 			for(var i = 0; i < walls.length; i++){
 				var w = walls[i].getCoords();
-				if(this.yPos + this.radius > w[2] && this.yPos + this.radius < w[3] && ((this.xPos - this.radius > w[0] && this.xPos - this.radius < w[1]) || (this.xPos + this.radius > w[0] && this.xPos + this.radius < w[1]))){
+				if(this.yPos + this.radius > w[2] && this.yPos + this.radius < w[3] && ((this.xPos - this.radius > w[0] && this.xPos - this.radius < w[1]) || (this.xPos + this.radius > w[0] && this.xPos + this.radius < w[1]) || (this.xPos - this.radius < w[0] && this.xPos + this.radius > w[1]))){
 					this.yPos -= this.speed * step;
 				}
 			}
@@ -265,7 +265,7 @@ MyGame.bullets = [];
 })();
 
 (function(){
-	function Bullet(xp, yp, xd, yd, sBullet, rBullet, walls){
+	function Bullet(xp, yp, xd, yd, sBullet, rBullet){
 		this.xPos = xp;
 		this.yPos = yp;
 
@@ -279,9 +279,30 @@ MyGame.bullets = [];
 
 	}
 
-	Bullet.prototype.update = function(step, mapWidth, mapHeight){
+	Bullet.prototype.update = function(step, mapWidth, mapHeight, walls){
 		this.xPos += this.xDir * this.speed * step;
 		this.yPos += this.yDir * this.speed * step;
+
+		for(var i = 0; i < walls.length; i++){
+			var w = walls[i].getCoords();
+			if(this.xPos - this.radius > w[0] && this.xPos - this.radius < w[1]
+				&& ((this.yPos - this.radius > w[2] && this.yPos - this.radius < w[3]) || (this.yPos + this.radius > w[2] && this.yPos + this.radius < w[3]) || (this.yPos - this.radius < w[2] && this.yPos + this.radius > w[3]))) {
+				this.spawned = false;
+			}
+			if(this.xPos + this.radius > w[0] && this.xPos + this.radius < w[1]
+				&& ((this.yPos - this.radius > w[2] && this.yPos - this.radius < w[3]) || (this.yPos + this.radius > w[2] && this.yPos + this.radius < w[3]) || (this.yPos - this.radius < w[2] && this.yPos + this.radius > w[3]))){
+				this.spawned = false;
+			}
+			if(this.yPos - this.radius > w[2] && this.yPos - this.radius < w[3]
+				&& ((this.xPos - this.radius > w[0] && this.xPos - this.radius < w[1]) || (this.xPos + this.radius > w[0] && this.xPos + this.radius < w[1]) || (this.xPos - this.radius < w[0] && this.xPos + this.radius > w[1]))){
+				this.spawned = false;
+			}
+			if(this.yPos + this.radius > w[2] && this.yPos + this.radius < w[3]
+				&& ((this.xPos - this.radius > w[0] && this.xPos - this.radius < w[1]) || (this.xPos + this.radius > w[0] && this.xPos + this.radius < w[1]) || (this.xPos - this.radius < w[0] && this.xPos + this.radius > w[1]))){
+				this.spawned = false;
+			}
+		}
+
 
 		if(this.xPos - this.radius < 0){
 			this.spawned = false;
@@ -559,7 +580,7 @@ MyGame.bullets = [];
 		player.update(step, gameMap.width, gameMap.height, gameMap.walls);
 		gun.update(player.xPos, player.yPos, camera.xPos, camera.yPos);
 		for(var i = 0; i < MyGame.bullets.length; i++){
-			MyGame.bullets[i].update(step, gameMap.width, gameMap.height);
+			MyGame.bullets[i].update(step, gameMap.width, gameMap.height, gameMap.walls);
 			if(!MyGame.bullets[i].getSpawned()){
 				dBullet[dBullet.length] = i;
 			}
