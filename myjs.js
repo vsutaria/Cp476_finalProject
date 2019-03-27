@@ -205,7 +205,7 @@ MyGame.bullets = [];
 		ctx.stroke();
 		ctx.closePath();
 		ctx.restore();
-	};
+	}
 
 	Player.prototype.getPos = function(){
 		return [~~(this.xPos/1), ~~(this.yPos/1)];
