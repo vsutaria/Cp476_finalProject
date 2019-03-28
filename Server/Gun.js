@@ -34,7 +34,6 @@ module.exports = class Gun{
 		ctx.closePath();
 
 		ctx.restore();
-		document.querySelector("#coords").innerHTML = "( " + ~~(this.xPos/1 - xCvs) + ", " + ~~(this.yPos/1 - yCvs) + " )" + "( " + MyGame.controls.xMouse + ", " + MyGame.controls.yMouse + " )" + "( " + this.angle  + " )";	// Report mouse coordinates in the canvas
 	}
 
 	getHeight(){

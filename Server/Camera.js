@@ -1,4 +1,4 @@
-const RectangleComponent = require('./RectangleComponent.js').default;
+const RectangleComponent = require('./RectangleComponent.js');
 var DIR = {
 	NONE: "none",
 	HORIZONTAL: "horizontal",

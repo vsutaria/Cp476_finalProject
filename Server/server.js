@@ -3,7 +3,7 @@ const Camera = require('./Camera.js');
 const Gun = require('./Gun.js');
 const GameMap = require('./Map.js');
 const Player = require('./Player.js');
-const RectangeComponent = require('./RectangleComponent.js');
+const RectangleComponent = require('./RectangleComponent.js');
 const Wall = require('./Wall.js');
 
 // Dependencies
@@ -66,19 +66,21 @@ var state = {};
 io.on('connection', function(socket) {
 
   socket.on('new player', function() {
+    console.log('new player connected');
     state[socket.id] = {
       gameMap: new GameMap(mapWidth, mapHeight),
       player: new Player(xPlayer, yPlayer, sPlayer, rPlayer),
       gun: new Gun(xPlayer, yPlayer),
-      camera: new Camera(0, 0, cWidth, cHeight, mapWidth, mapHeight),
+      camera: new Camera(0, 0, cWidth, cHeight, mapWidth, mapHeight)
     };
     state[socket.id].gameMap.generate();
     state[socket.id].camera.follow(state[socket.id].player, cWidth/2, cHeight/2);
   });
 
   socket.on('controls', function(data) {
-    state[socket.id].player.update(step, mapWidth, mapHeight, walls, controls);
-    state[socket.id].gun.update(state[socket.id].player.xPos, state[socket.id].player.yPos, state[socket.id].camera.xPos, state[socket.id].camera.yPos, controls);
+    console.log('updating');
+    state[socket.id].player.update(step, mapWidth, mapHeight, walls, data);
+    state[socket.id].gun.update(state[socket.id].player.xPos, state[socket.id].player.yPos, state[socket.id].camera.xPos, state[socket.id].camera.yPos, data);
     state[socket.id].camera.update();
   });
 

@@ -67,7 +67,7 @@ socket.on('state', function(state) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   state[socket.id].draw(ctx, state[socket.id].camera.xPos, state[socket.id].camera.yPos);
-  
+
   for (var id in state) {
     state[id].player.draw(ctx, state[socket.id].camera.xPos, state[socket.id].camera.yPos);
     state[id].gun.draw(ctx, state[socket.id].camera.xPos, state[socket.id].camera.yPos);

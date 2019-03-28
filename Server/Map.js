@@ -1,3 +1,6 @@
+const Wall = require('./Wall.js');
+const Canvas = require('canvas');
+
 module.exports = class GameMap{
 	constructor(width, height){
 		this.width = width;
@@ -10,7 +13,8 @@ module.exports = class GameMap{
 	}
 
 	generate(){
-		var ctx = document.createElement("canvas").getContext("2d");
+		/*var canvas = createCanvas(dia, dia);*/
+		var ctx = Canvas.createCanvas(0,0).getContext("2d");
 		ctx.canvas.width = this.width;
 		ctx.canvas.height = this.height;
 
@@ -42,8 +46,8 @@ module.exports = class GameMap{
 		var houses = [300,1900];
 
 		/*Houses' Walls - https://www.color-hex.com/color-palette/74708*/
-		wallColor = "#977b5f";
-		floorColor = "#816346";
+		var wallColor = "#977b5f";
+		var floorColor = "#816346";
 
 		for(var i = 0; i < houses.length; i++){
 			for(var j = 0; j < houses.length; j++){
@@ -58,34 +62,34 @@ module.exports = class GameMap{
 		}
 
 		/*Top Left House*/
-		this.walls.push(new MyGame.Wall(houses[0] + WALLS.WIDTH, houses[0], WALLS.LENGTH, WALLS.WIDTH, wallColor));					//Top
-		this.walls.push(new MyGame.Wall(houses[0], houses[0], WALLS.WIDTH, WALLS.LENGTH - WALLS.DOOR, wallColor));					//Left
-		this.walls.push(new MyGame.Wall(houses[0], houses[0] + WALLS.LENGTH, WALLS.LENGTH, WALLS.WIDTH, wallColor));				//Bottom
-		this.walls.push(new MyGame.Wall(houses[0] + WALLS.LENGTH, houses[0] + WALLS.WIDTH, WALLS.WIDTH, WALLS.LENGTH, wallColor));	//Right
+		this.walls.push(new Wall(houses[0] + WALLS.WIDTH, houses[0], WALLS.LENGTH, WALLS.WIDTH, wallColor));					//Top
+		this.walls.push(new Wall(houses[0], houses[0], WALLS.WIDTH, WALLS.LENGTH - WALLS.DOOR, wallColor));					//Left
+		this.walls.push(new Wall(houses[0], houses[0] + WALLS.LENGTH, WALLS.LENGTH, WALLS.WIDTH, wallColor));				//Bottom
+		this.walls.push(new Wall(houses[0] + WALLS.LENGTH, houses[0] + WALLS.WIDTH, WALLS.WIDTH, WALLS.LENGTH, wallColor));	//Right
 
 		/*Top Right House*/
-		this.walls.push(new MyGame.Wall(houses[1] + WALLS.WIDTH + WALLS.DOOR, houses[0], WALLS.LENGTH - WALLS.DOOR, WALLS.WIDTH, wallColor));//Top
-		this.walls.push(new MyGame.Wall(houses[1], houses[0], WALLS.WIDTH, WALLS.LENGTH, wallColor));								//Left
-		this.walls.push(new MyGame.Wall(houses[1], houses[0] + WALLS.LENGTH, WALLS.LENGTH, WALLS.WIDTH, wallColor));				//Bottom
-		this.walls.push(new MyGame.Wall(houses[1] + WALLS.LENGTH, houses[0] + WALLS.WIDTH, WALLS.WIDTH, WALLS.LENGTH, wallColor));	//Right
+		this.walls.push(new Wall(houses[1] + WALLS.WIDTH + WALLS.DOOR, houses[0], WALLS.LENGTH - WALLS.DOOR, WALLS.WIDTH, wallColor));//Top
+		this.walls.push(new Wall(houses[1], houses[0], WALLS.WIDTH, WALLS.LENGTH, wallColor));								//Left
+		this.walls.push(new Wall(houses[1], houses[0] + WALLS.LENGTH, WALLS.LENGTH, WALLS.WIDTH, wallColor));				//Bottom
+		this.walls.push(new Wall(houses[1] + WALLS.LENGTH, houses[0] + WALLS.WIDTH, WALLS.WIDTH, WALLS.LENGTH, wallColor));	//Right
 
 		/*Bottom Left House*/
-		this.walls.push(new MyGame.Wall(houses[0] + WALLS.WIDTH, houses[1], WALLS.LENGTH, WALLS.WIDTH, wallColor));					//Top
-		this.walls.push(new MyGame.Wall(houses[0], houses[1], WALLS.WIDTH, WALLS.LENGTH, wallColor));								//Left
-		this.walls.push(new MyGame.Wall(houses[0], houses[1] + WALLS.LENGTH, WALLS.LENGTH - WALLS.DOOR, WALLS.WIDTH, wallColor));	//Bottom
-		this.walls.push(new MyGame.Wall(houses[0] + WALLS.LENGTH, houses[1] + WALLS.WIDTH, WALLS.WIDTH, WALLS.LENGTH, wallColor));	//Right
+		this.walls.push(new Wall(houses[0] + WALLS.WIDTH, houses[1], WALLS.LENGTH, WALLS.WIDTH, wallColor));					//Top
+		this.walls.push(new Wall(houses[0], houses[1], WALLS.WIDTH, WALLS.LENGTH, wallColor));								//Left
+		this.walls.push(new Wall(houses[0], houses[1] + WALLS.LENGTH, WALLS.LENGTH - WALLS.DOOR, WALLS.WIDTH, wallColor));	//Bottom
+		this.walls.push(new Wall(houses[0] + WALLS.LENGTH, houses[1] + WALLS.WIDTH, WALLS.WIDTH, WALLS.LENGTH, wallColor));	//Right
 
 		/*Bottom Right House*/
-		this.walls.push(new MyGame.Wall(houses[1] + WALLS.WIDTH, houses[1], WALLS.LENGTH, WALLS.WIDTH, wallColor));					//Top
-		this.walls.push(new MyGame.Wall(houses[1], houses[1], WALLS.WIDTH, WALLS.LENGTH, wallColor));								//Left
-		this.walls.push(new MyGame.Wall(houses[1], houses[1] + WALLS.LENGTH, WALLS.LENGTH, WALLS.WIDTH, wallColor));				//Bottom
-		this.walls.push(new MyGame.Wall(houses[1] + WALLS.LENGTH, houses[1] + WALLS.WIDTH + WALLS.DOOR, WALLS.WIDTH, WALLS.LENGTH - WALLS.DOOR, wallColor));//Right
+		this.walls.push(new Wall(houses[1] + WALLS.WIDTH, houses[1], WALLS.LENGTH, WALLS.WIDTH, wallColor));					//Top
+		this.walls.push(new Wall(houses[1], houses[1], WALLS.WIDTH, WALLS.LENGTH, wallColor));								//Left
+		this.walls.push(new Wall(houses[1], houses[1] + WALLS.LENGTH, WALLS.LENGTH, WALLS.WIDTH, wallColor));				//Bottom
+		this.walls.push(new Wall(houses[1] + WALLS.LENGTH, houses[1] + WALLS.WIDTH + WALLS.DOOR, WALLS.WIDTH, WALLS.LENGTH - WALLS.DOOR, wallColor));//Right
 
 		for (var i = 0; i < this.walls.length; i++) {
 			this.walls[i].draw(ctx);
 		}
 
-		this.image = new Image();
+		this.image = new Canvas.Image();
 		this.image.src = ctx.canvas.toDataURL("image/png");
 
 		ctx = null;
