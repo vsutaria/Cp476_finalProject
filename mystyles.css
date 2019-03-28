@@ -7,8 +7,8 @@ body{
 canvas { 
 	background: #eee; 
 	display: block; 
-	height: 90vh;
-	width: 90vh;
+	/*height: 90vh;
+	width: 90vh;*/
 	margin: auto; 
 }
 

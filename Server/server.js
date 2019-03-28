@@ -1,10 +1,10 @@
-const Bullet = require('./Bullet.js').default;
-const Camera = require('./Camera.js').default;
-const Gun = require('./Gun.js').default;
-const GameMap = require('./GameMap.js').default;
-const Player = require('./Player.js').default;
-const RectangeComponent = require('./RectangeComponent.js').default;
-const Wall = require('./Wall.js').default;
+const Bullet = require('./Bullet.js');
+const Camera = require('./Camera.js');
+const Gun = require('./Gun.js');
+const GameMap = require('./Map.js');
+const Player = require('./Player.js');
+const RectangeComponent = require('./RectangleComponent.js');
+const Wall = require('./Wall.js');
 
 // Dependencies
 const express = require('express');
@@ -42,15 +42,23 @@ var rBullet = 10;
 var mapWidth = 2500;
 var mapHeight = 2500;
 
-/*Player and Mouse Coordinates*/
-var xPlayer = canvas.width/2;
-var yPlayer = canvas.height/2;
-
-MyGame.rBullet = rBullet;
-
-/*Plater and Bullet Speeds*/
+/*Player and Bullet Speeds*/
 var sBullet = 3000;
 var sPlayer = 200;
+
+/*Canvas Width and Height*/
+var cWidth = 900;
+var cHeight = 800;
+
+/*Player and Mouse Coordinates*/
+var xPlayer = cWidth/2;
+var yPlayer = cHeight/2;
+
+var gameMap = new GameMap(mapWidth, mapHeight);
+gameMap.generate();
+var walls = gameMap.getWalls();
+
+var bullets = [];
 
 // Add the WebSocket handlers
 var state = {};
@@ -59,29 +67,23 @@ io.on('connection', function(socket) {
 
   socket.on('new player', function() {
     state[socket.id] = {
-      player: new Player(),
-      y: 300
+      gameMap: new GameMap(mapWidth, mapHeight),
+      player: new Player(xPlayer, yPlayer, sPlayer, rPlayer),
+      gun: new Gun(xPlayer, yPlayer),
+      camera: new Camera(0, 0, cWidth, cHeight, mapWidth, mapHeight),
     };
+    state[socket.id].gameMap.generate();
+    state[socket.id].camera.follow(state[socket.id].player, cWidth/2, cHeight/2);
   });
 
-  socket.on('movement', function(data) {
-    var player = players[socket.id] || {};
-    if (data.left) {
-      player.x -= 5;
-    }
-    if (data.up) {
-      player.y -= 5;
-    }
-    if (data.right) {
-      player.x += 5;
-    }
-    if (data.down) {
-      player.y += 5;
-    }
+  socket.on('controls', function(data) {
+    state[socket.id].player.update(step, mapWidth, mapHeight, walls, controls);
+    state[socket.id].gun.update(state[socket.id].player.xPos, state[socket.id].player.yPos, state[socket.id].camera.xPos, state[socket.id].camera.yPos, controls);
+    state[socket.id].camera.update();
   });
 
 });
 
 setInterval(function() {
-  io.sockets.emit('state', players);
+  io.sockets.emit('state', state);
 }, 1000 / 60);

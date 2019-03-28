@@ -1,4 +1,4 @@
-export default class Bullet{
+module.exports = class Bullet{
 	constructor(xp, yp, xd, yd, sBullet, rBullet){
 		this.xPos = xp;
 		this.yPos = yp;

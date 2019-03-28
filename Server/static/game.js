@@ -12,58 +12,64 @@ var controls = {
   yMouse: 0
 }
 
-var bullets = [];
-
 document.addEventListener("keydown", kDownHandler, false);
 document.addEventListener("keyup", kUpHandler, false);
 
 function kDownHandler(e) {
     if(e.key == "w" || e.key == "W") {
-        MyGame.controls.kW = true;
+        controls.kW = true;
     }
     if(e.key == "a" || e.key == "A") {
-        MyGame.controls.kA = true;
+        controls.kA = true;
     }
     if(e.key == "s" || e.key == "S") {
-        MyGame.controls.kS = true;
+        controls.kS = true;
     }
     if(e.key == "d" || e.key == "D") {
-        MyGame.controls.kD = true;
+        controls.kD = true;
     }
 }
 
 function kUpHandler(e) {
     if(e.key == "w" || e.key == "W") {
-        MyGame.controls.kW = false;
+        controls.kW = false;
     }
     else if(e.key == "a" || e.key == "A") {
-        MyGame.controls.kA = false;
+        controls.kA = false;
     }
     else if(e.key == "s" || e.key == "S") {
-        MyGame.controls.kS = false;
+        controls.kS = false;
     }
     else if(e.key == "d" || e.key == "D") {
-        MyGame.controls.kD = false;
+        controls.kD = false;
     }
 }
 
 socket.emit('new player');
 setInterval(function() {
-  socket.emit('movement', movement);
+  socket.emit('controls', controls);
 }, 1000 / 60);
 
-var canvas = document.getElementById('canvas');
-canvas.width = 800;
-canvas.height = 600;
-var context = canvas.getContext('2d');
+var canvas = document.getElementById('myCanvas');
+canvas.width = 900;
+canvas.height = 800;
+var ctx = canvas.getContext('2d');
 
-socket.on('state', function(players) {
-  context.clearRect(0, 0, 800, 600);
-  context.fillStyle = 'green';
-  for (var id in players) {
-    var player = players[id];
-    context.beginPath();
-    context.arc(player.x, player.y, 10, 0, 2 * Math.PI);
-    context.fill();
+canvas.addEventListener("mousemove", aimHandler, false);
+
+function aimHandler(e){
+  var c = e.target.getBoundingClientRect();
+  controls.xMouse = Math.floor(e.clientX - c.left);
+  controls.yMouse = Math.floor(e.clientY - c.top);
+}
+
+socket.on('state', function(state) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  state[socket.id].draw(ctx, state[socket.id].camera.xPos, state[socket.id].camera.yPos);
+  
+  for (var id in state) {
+    state[id].player.draw(ctx, state[socket.id].camera.xPos, state[socket.id].camera.yPos);
+    state[id].gun.draw(ctx, state[socket.id].camera.xPos, state[socket.id].camera.yPos);
   }
 });

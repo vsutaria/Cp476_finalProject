@@ -1,4 +1,4 @@
-export default class Player{
+module.exports = class Wall{
 	constructor(x, y, width, height, color){
 		this.width = width || 0;
 		this.height = height || 0;

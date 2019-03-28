@@ -1,4 +1,4 @@
-export default class RectangleComponent{
+module.exports = class RectangleComponent{
 	constructor(x, y,width, height){
 		this.width = width || 0;
 		this.height = height || 0;

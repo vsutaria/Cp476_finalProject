@@ -1,12 +1,12 @@
 const RectangleComponent = require('./RectangleComponent.js').default;
+var DIR = {
+	NONE: "none",
+	HORIZONTAL: "horizontal",
+	VERTICAL: "vertical",
+	BOTH: "both"
+}
 
-export default class Camera{
-	var DIR = {
-		NONE: "none",
-		HORIZONTAL: "horizontal",
-		VERTICAL: "vertical",
-		BOTH: "both"
-	}
+module.exports = class Camera{
 
 	constructor(xPos, yPos, cvsWidth, cvsHeight, mapWidth, mapHeight){
 		this.xPos = xPos || 0;

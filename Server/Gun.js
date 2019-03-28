@@ -1,4 +1,4 @@
-export default class Gun{
+module.exports = class Gun{
 	constructor(x, y){
 		this.xPos = x;
 		this.yPos = y;
@@ -9,11 +9,11 @@ export default class Gun{
 		this.angle = 0;
 	}
 
-	update(x, y, xCvs, yCvs){
+	update(x, y, xCvs, yCvs, controls){
 		this.xPos = x;
 		this.yPos = y;
 
-		this.angle = Math.atan(~~((MyGame.controls.yMouse - (this.yPos - yCvs))/1) / ~~((MyGame.controls.xMouse - (this.xPos - xCvs))/1)) + (Math.PI/2);
+		this.angle = Math.atan(~~((controls.yMouse - (this.yPos - yCvs))/1) / ~~((controls.xMouse - (this.xPos - xCvs))/1)) + (Math.PI/2);
 
 		if(~~((MyGame.controls.xMouse - (this.xPos - xCvs))/1) >= 0){
 			this.angle += Math.PI;

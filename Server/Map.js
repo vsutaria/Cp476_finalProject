@@ -1,4 +1,4 @@
-export default class GameMap{
+module.exports = class GameMap{
 	constructor(width, height){
 		this.width = width;
 		this.height = height;

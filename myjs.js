@@ -519,8 +519,8 @@ MyGame.bullets = [];
 	var ctx = canvas.getContext("2d");
 
 	var cHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
-	canvas.setAttribute("height", 0.9 * cHeight);
-	canvas.setAttribute("width", 0.9 * cHeight);
+	canvas.setAttribute("height", 800);
+	canvas.setAttribute("width", 900);
 
 	/*Frames Per Second (Refresh)*/
 	var fps = 60;
@@ -537,9 +537,9 @@ MyGame.bullets = [];
 
 	MyGame.rBullet = rBullet;
 
-	/*Plater and Bullet Speeds*/
-	var sBullet = 3000;
-	var sPlayer = 200;
+	/*Player and Bullet Speeds*/
+	var sBullet = 10000;
+	var sPlayer = 400;
 
 	MyGame.sBullet = sBullet;
 

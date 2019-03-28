@@ -1,4 +1,4 @@
-export default class Player{
+module.exports = class Player{
 	constructor(x, y, sPlayer, rPlayer){
 		this.xPos = x;
 		this.yPos = y;
@@ -8,8 +8,8 @@ export default class Player{
 		this.radius = rPlayer;
 	}
 
-	update(step, mapWidth, mapHeight, walls){
-		if(MyGame.controls.kA){
+	update(step, mapWidth, mapHeight, walls, controls){
+		if(controls.kA){
 			this.xPos -= this.speed * step;
 			for(var i = 0; i < walls.length; i++){
 				var w = walls[i].getCoords();
@@ -19,7 +19,7 @@ export default class Player{
 				}
 			}
 		}
-		if(MyGame.controls.kD){
+		if(controls.kD){
 			this.xPos += this.speed * step;
 			for(var i = 0; i < walls.length; i++){
 				var w = walls[i].getCoords();
@@ -28,7 +28,7 @@ export default class Player{
 				}
 			}
 		}
-		if(MyGame.controls.kW){
+		if(controls.kW){
 			this.yPos -= this.speed * step;
 			for(var i = 0; i < walls.length; i++){
 				var w = walls[i].getCoords();
@@ -37,7 +37,7 @@ export default class Player{
 				}
 			}
 		}
-		if(MyGame.controls.kS){
+		if(controls.kS){
 			this.yPos += this.speed * step;
 			for(var i = 0; i < walls.length; i++){
 				var w = walls[i].getCoords();
