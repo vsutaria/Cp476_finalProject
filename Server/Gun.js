@@ -15,7 +15,7 @@ module.exports = class Gun{
 
 		this.angle = Math.atan(~~((controls.yMouse - (this.yPos - yCvs))/1) / ~~((controls.xMouse - (this.xPos - xCvs))/1)) + (Math.PI/2);
 
-		if(~~((MyGame.controls.xMouse - (this.xPos - xCvs))/1) >= 0){
+		if(~~((controls.xMouse - (this.xPos - xCvs))/1) >= 0){
 			this.angle += Math.PI;
 		}
 	}
