@@ -78,7 +78,7 @@ io.on('connection', function(socket) {
   });
 
   socket.on('controls', function(data) {
-    console.log('updating');
+    console.log(socket.id);
     state[socket.id].player.update(step, mapWidth, mapHeight, walls, data);
     state[socket.id].gun.update(state[socket.id].player.xPos, state[socket.id].player.yPos, state[socket.id].camera.xPos, state[socket.id].camera.yPos, data);
     state[socket.id].camera.update();
@@ -88,4 +88,4 @@ io.on('connection', function(socket) {
 
 setInterval(function() {
   io.sockets.emit('state', state);
-}, 1000 / 60);
+}, 1000 / 1);

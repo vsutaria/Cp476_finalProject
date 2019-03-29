@@ -48,7 +48,7 @@ function kUpHandler(e) {
 socket.emit('new player');
 setInterval(function() {
   socket.emit('controls', controls);
-}, 1000 / 60);
+}, 1000 / 1);
 
 var canvas = document.getElementById('myCanvas');
 canvas.width = 900;
@@ -64,12 +64,16 @@ function aimHandler(e){
 }
 
 socket.on('state', function(state) {
+  console.log(state);
+
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  state[socket.id].draw(ctx, state[socket.id].camera.xPos, state[socket.id].camera.yPos);
-
+  console.log('drew rect');
+  state[socket.id].gameMap.draw(ctx, state[socket.id].camera.xPos, state[socket.id].camera.yPos);
+  console.log('drew map');
   for (var id in state) {
     state[id].player.draw(ctx, state[socket.id].camera.xPos, state[socket.id].camera.yPos);
     state[id].gun.draw(ctx, state[socket.id].camera.xPos, state[socket.id].camera.yPos);
   }
+  console.log('drawn');
 });
