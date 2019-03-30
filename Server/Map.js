@@ -9,12 +9,16 @@ module.exports = class GameMap{
 
 		this.color = "#00A102"
 
+		this.canvas = null;
+
 		this.image = null;
+		this.imageSrc = null;
 	}
 
 	generate(){
 		/*var canvas = createCanvas(dia, dia);*/
-		var ctx = Canvas.createCanvas(0,0).getContext("2d");
+		this.canvas = Canvas.createCanvas(900,800);
+		var ctx = this.canvas.getContext("2d");
 		ctx.canvas.width = this.width;
 		ctx.canvas.height = this.height;
 
@@ -91,6 +95,7 @@ module.exports = class GameMap{
 
 		this.image = new Canvas.Image();
 		this.image.src = ctx.canvas.toDataURL("image/png");
+		this.imageSrc = this.image.src;
 
 		ctx = null;
 	}

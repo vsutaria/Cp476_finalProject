@@ -75,6 +75,7 @@ io.on('connection', function(socket) {
     };
     state[socket.id].gameMap.generate();
     state[socket.id].camera.follow(state[socket.id].player, cWidth/2, cHeight/2);
+    io.to(socket.id).emit("new map", gameMap.imageSrc);
   });
 
   socket.on('controls', function(data) {

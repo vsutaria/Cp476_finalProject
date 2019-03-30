@@ -475,7 +475,7 @@ MyGame.bullets = [];
 		ctx.restore();*/
 
 		this.image = new Image();
-		this.image.src = ctx.canvas.toDataURL("image/png");
+		this.image.src = ctx.canvas.toDataURL("image/jpeg", 0.60);
 
 		ctx = null;
 	}
