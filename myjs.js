@@ -456,24 +456,6 @@ MyGame.bullets = [];
 			this.walls[i].draw(ctx);
 		}
 
-/*
-		ctx.save();
-		for(var x = 0, i = 0; i < rows; x += 400, i++){
-			ctx.beginPath();
-			for(var y = 0, j = 0; j < cols; y += 400, j++){
-				ctx.drawImage(imgBg, x, y);
-			}
-			ctx.closePath();
-		}
-		ctx.restore();*/
-
-		/*ctx.save();
-		imgBg.onload = function(){
-			ctx.fillStyle = ctx.createPattern(imgBg, 'repeat');
-			ctx.fillRect(0,0,400,400);
-		}
-		ctx.restore();*/
-
 		this.image = new Image();
 		this.image.src = ctx.canvas.toDataURL("image/jpeg", 0.60);
 

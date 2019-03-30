@@ -66,20 +66,17 @@ var state = {};
 io.on('connection', function(socket) {
 
   socket.on('new player', function() {
-    console.log('new player connected');
+    console.log('new player connected: ' + socket.id);
     state[socket.id] = {
-      gameMap: new GameMap(mapWidth, mapHeight),
       player: new Player(xPlayer, yPlayer, sPlayer, rPlayer),
       gun: new Gun(xPlayer, yPlayer),
       camera: new Camera(0, 0, cWidth, cHeight, mapWidth, mapHeight)
     };
-    state[socket.id].gameMap.generate();
     state[socket.id].camera.follow(state[socket.id].player, cWidth/2, cHeight/2);
-    io.to(socket.id).emit("new map", gameMap.imageSrc);
+    io.to(socket.id).emit("new map", gameMap.getWalls());
   });
 
   socket.on('controls', function(data) {
-    console.log(socket.id);
     state[socket.id].player.update(step, mapWidth, mapHeight, walls, data);
     state[socket.id].gun.update(state[socket.id].player.xPos, state[socket.id].player.yPos, state[socket.id].camera.xPos, state[socket.id].camera.yPos, data);
     state[socket.id].camera.update();
@@ -87,6 +84,8 @@ io.on('connection', function(socket) {
 
 });
 
-setInterval(function() {
-  io.sockets.emit('state', state);
-}, 1000 / 1);
+setTimeout(function(){ 
+  setInterval(function() {
+    io.sockets.emit('state', state);
+  }, 1000 / 60);
+}, 3000);

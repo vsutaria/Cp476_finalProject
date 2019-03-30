@@ -46,16 +46,19 @@ function kUpHandler(e) {
 }
 
 socket.emit('new player');
-setInterval(function() {
-  socket.emit('controls', controls);
-}, 1000 / 1);
+
+setTimeout(function(){ 
+  setInterval(function() {
+    socket.emit('controls', controls);
+  }, 1000 / 60); 
+}, 3000);
+
 
 var canvas = document.getElementById('myCanvas');
 canvas.width = 900;
 canvas.height = 800;
 var ctx = canvas.getContext('2d');
-var map = null;
-var img = new Image();
+var img = null;
 
 canvas.addEventListener("mousemove", aimHandler, false);
 
@@ -65,21 +68,21 @@ function aimHandler(e){
   controls.yMouse = Math.floor(e.clientY - c.top);
 }
 
-function drawMap(ctx, xPos, yPos){
+function drawMap(c, xPos, yPos){
   var sx, sy, dx, dy;
   var sWidth, sHeight, dWidth, dHeight;
 
   sx = xPos;
   sy = yPos;
 
-  sWidth = ctx.canvas.width;
-  sHeight = ctx.canvas.height;
+  sWidth = c.canvas.width;
+  sHeight = c.canvas.height;
 
-  if(map.width - sx < sWidth){
-    sWidth = map.width - sx;
+  if(img.width - sx < sWidth){
+    sWidth = img.width - sx;
   }
-  if(map.height - sy < sHeight){
-    sHeight = map.height - sy;
+  if(img.height - sy < sHeight){
+    sHeight = img.height - sy;
   }
 
   dx = 0;
@@ -87,40 +90,108 @@ function drawMap(ctx, xPos, yPos){
   dWidth = sWidth;
   dHeight = sHeight;
 
-  ctx.drawImage(img, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
+  c.drawImage(img, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
 }
 
-function drawPlayer(p, ctx, xCvs, yCvs){
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(p.xPos - xCvs, p.yPos - yCvs, p.radius, 0, Math.PI*2);
-  ctx.fillStyle = "#0095DD";
-  ctx.fill();
-  ctx.strokeStyle = "#000000"
-  ctx.stroke();
-  ctx.closePath();
-  ctx.restore();
+function drawPlayer(p, c, xCvs, yCvs){
+  c.save();
+  c.beginPath();
+  c.arc(p.xPos - xCvs, p.yPos - yCvs, p.radius, 0, Math.PI*2);
+  c.fillStyle = "#0095DD";
+  c.fill();
+  c.strokeStyle = "#000000"
+  c.stroke();
+  c.closePath();
+  c.restore();
 }
 
-function drawGun(g, ctx, xCvs, yCvs){
-  ctx.save();
-  ctx.translate(g.xPos - xCvs, g.yPos - yCvs);
-  ctx.rotate(g.angle);
+function drawGun(g, c, xCvs, yCvs){
+  c.save();
+  c.translate(g.xPos - xCvs, g.yPos - yCvs);
+  c.rotate(g.angle);
 
-  ctx.beginPath();
-  ctx.rect(-g.width/2, 0, g.width, g.height);
-  ctx.fillStyle = "#873600";
-  ctx.fill();
-  ctx.strokeStyle = "#000000"
-  ctx.stroke();
-  ctx.closePath();
+  c.beginPath();
+  c.rect(-g.width/2, 0, g.width, g.height);
+  c.fillStyle = "#873600";
+  c.fill();
+  c.strokeStyle = "#000000"
+  c.stroke();
+  c.closePath();
 
-  ctx.restore();
+  c.restore();
 }
 
-socket.on('new map', function(m) {
-  /*map = m;*/
-  img.src = m;
+socket.on('new map', function(walls) {
+  var h = 2500;
+  var w = 2500;
+
+  var c = document.createElement("canvas").getContext("2d");
+    c.canvas.width = w;
+    c.canvas.height = h;
+
+    // var imgBg = new Image();
+    // imgBg.src = "images/background.png"; /*https://www.toptal.com/designers/subtlepatterns/vintage-concrete*/
+
+
+    var rows = ~~(w/200) + 1;
+    var cols = ~~(h/200) + 1;
+
+    c.save();     
+    c.fillStyle = "#00A102";       
+    for (var x = 0, i = 0; i < rows; x+=200, i++) {
+      c.beginPath();      
+      for (var y = 0, j = 0; j < cols; y += 200, j++) {            
+        c.rect (x, y, 200, 200);        
+      }
+      c.fillStyle = "#00A102";
+      c.fill();
+      c.strokeStyle = "#009002";
+      c.stroke();
+      c.closePath();      
+    }   
+    c.restore();
+
+    var WALLS = {
+      WIDTH: 20,
+      LENGTH: 300,
+      DOOR: 100
+    }
+
+    /*Array of house coords for floors*/
+    var houses = [300,1900];
+
+    /*Houses' Walls - https://www.color-hex.com/color-palette/74708*/
+    wallColor = "#977b5f";
+    floorColor = "#816346";
+
+    for(var i = 0; i < houses.length; i++){
+      for(var j = 0; j < houses.length; j++){
+        c.save();     
+        c.beginPath();          
+        c.rect (houses[i], houses[j], WALLS.LENGTH + WALLS.WIDTH, WALLS.LENGTH + WALLS.WIDTH);        
+        c.fillStyle = floorColor;
+        c.fill();
+        c.closePath();
+        c.restore();
+      }
+    }
+
+    for (var i = 0; i < walls.length; i++) {
+      c.save();
+      c.beginPath();              
+      c.rect (walls[i].xStart, walls[i].yStart, walls[i].width, walls[i].height);
+      c.fillStyle = walls[i].color;
+      c.fill();
+      c.strokeStyle = "#000000";
+      c.stroke();
+      c.closePath();
+      c.restore();
+    }
+
+    img = new Image();
+    img.src = c.canvas.toDataURL("image/png");
+
+    c = null;
 });
 
 socket.on('state', function(state) {
