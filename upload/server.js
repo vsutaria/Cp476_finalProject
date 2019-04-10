@@ -1,8 +1,8 @@
 var express = require('express');
 var path = require('path');
 var app = express();
-//var session = require('express-session');
-
+var session = require('express-session');
+var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
 var bcrypt = require('bcrypt');
@@ -15,21 +15,7 @@ var connection = mysql.createConnection({
 	password : '',
 	database : 'pew_pew'
 });
-
-connection.connect(function(err){
-if(!err) {
-    console.log("Database is connected ... nn");    
-} else {
-    console.log("Error connecting database ... nn");    
-}
-}); 
 global.db= connection;
-
-//app.use(session({
-//	secret: 'secret',  search session secret
-//	resave: true,
-//	saveUninitialized: true
-//}));
 
 
 //configure body-parser for express
@@ -38,6 +24,19 @@ app.use(bodyParser.json());
 
 
 app.use("/", express.static(path.join(__dirname,'public')));
+
+// initialize cookie-parser to allow us access the cookies stored in the browser. 
+app.use(cookieParser());
+
+// initialize express-session to allow us track the logged-in user across sessions.
+app.use(session({
+    secret: '080a26b6-c094-4ef3-a764-bba320177d4c',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        path: '/', httpOnly: true, maxAge: null
+    }
+}));
 
 
 app.get('/', function (req, res) {
@@ -49,6 +48,17 @@ app.get('/', function (req, res) {
 //route the GET request to the specified path, "/user". 
 //This sends the user information to the path  
 app.post('/signUp', function (req,res){
+	
+	db.connect(function(err){
+		if(!err) {
+			console.log("Database is connected ... nn");    
+		} else {
+			console.log("Error connecting database ... nn");    
+		}
+	}); 
+	
+	
+	
 	var Fname = req.body.fname,
         Lname = req.body.lname,
         username = req.body.username,
@@ -84,27 +94,41 @@ app.post('/signUp', function (req,res){
 	db.end();
 });
 
+app.post('/login', function(req, res) {
+	var username = req.body.username;
+	var password = req.body.password;
+	console.log(username);
+	console.log(password);
+	
+	
+	
+	if (username && password) {
+		db.connect(function(err){
+			if(!err) {
+				console.log("Database is connected ... nn");    
+			} else {
+				console.log("Error connecting database ... nn");    
+			}
+		}); 
+		db.query('SELECT * FROM accounts WHERE UserName = ? AND Password = ?', [username, password], function(error, results, fields) {
+			if (results.length > 0) {
+				
+				req.session.loggedin = true;
+				req.session.username = username;
+				res.redirect('/');
+			} else {
+				res.send('Incorrect Username and/or Password!');
+			}			
+			res.end();
+		});
+		db.end();
+	} else {
+		res.send('Please enter Username and Password!');
+		res.end();
+	}
+	
+}); 
 
-
-//app.post('/login', function(req, res) {
-//	var username = request.body.username;
-//	var password = request.body.password;
-//	if (username && password) {
-//		connection.query('SELECT * FROM accounts WHERE UserName = ? AND Password = ?', [username, password], function(error, results, fields) {
-//			if (results.length > 0) {
-//				req.session.loggedin = true;
-//				req.session.username = username;
-//				res.redirect('main.html');
-//			} else {
-//				res.send('Incorrect Username and/or Password!');
-//			}			
-//			res.end();
-//		});
-//	} else {
-//		res.send('Please enter Username and Password!');
-//		res.end();
-//	}
-//});
 
 
 var server = app.listen(5000, function () {
