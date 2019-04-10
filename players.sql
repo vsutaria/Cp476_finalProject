@@ -32,7 +32,7 @@ CREATE TABLE `players` (
   `FirstName` varchar(50) COLLATE utf8_bin NOT NULL,
   `LastName` varchar(50) COLLATE utf8_bin NOT NULL,
   `UserName` varchar(20) COLLATE utf8_bin NOT NULL,
-  `Password` varchar(30) COLLATE utf8_bin NOT NULL,
+  `Password` varchar(500) COLLATE utf8_bin NOT NULL,
   `Score` bigint(20) NOT NULL,
   `Email` varchar(50) COLLATE utf8_bin NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;

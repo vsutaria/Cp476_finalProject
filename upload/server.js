@@ -115,6 +115,7 @@ app.post('/login', function(req, res) {
 			}
 		}); 
 		db.query('SELECT * FROM players WHERE UserName = ?', [username], function(error, results, fields) {
+			console.log(results);
 			var passCheck=passwordHash.verify(password, results[0].Password);
 			if (passCheck) {
 				
