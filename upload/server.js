@@ -78,28 +78,21 @@ app.post('/signUp', function (req,res){
 		password = req.body.psw,
 		repeatP = req.body.rpsw,
 		score = 0;
-	
-	
-	
-//	var newPass = bcrypt.hash(password, 10, function(err, hash) {
-//		if (err) {
-//     		throw err;
-//  		}
-		// Store hash in your password DB.
-	//});
-	
-		var sql = "INSERT INTO `players`(FirstName,LastName,UserName, Password, Score,Email) VALUES ('" + Fname + "','" + Lname + "','" + username + "','" + password + "','" + score + "','" + Email+ "')";
+	console.log(username);
+	console.log(password);
+	var hashedPassword = passwordHash.generate(password);
+	console.log(hashedPassword);
+	var sql = "INSERT INTO `players`(FirstName,LastName,UserName, Password, Score,Email) VALUES ('" + Fname + "','" + Lname + "','" + username + "','" + hashedPassword + "','" + score + "','" + Email+ "')";
  
-		var query = db.query(sql, function(err, result) {
-    		if (err) {
-     		throw err;
-  		}
-		
-			console.log("player added");
-			res.redirect('/');
+	var query = db.query(sql, function(err, result) {
+    	if (err) {
+			throw err;
+		}
+		console.log("player added");
+		res.redirect('/');
 			//message = "Succesfully! Your account has been created.";
         	//res.render('signup.ejs',{message: message});
-    	});
+    });
     
 	
 	
