@@ -1,77 +1,91 @@
+module.exports = class Player{
+	constructor(x, y, sPlayer, rPlayer,c){
+		this.xPos = x;
+		this.yPos = y;
 
+		this.speed = sPlayer;
 
-module.exports = {
-    addPlayer: (req, res) => {
-        
-        let message = '';
-        var Fname = req.body.fname,
-            lname = req.body.lname,
-            username = req.body.username,
-			Email = req.body.email,
-			password = req.body.psw,
-			repeatP = req.body.rpsw
-            ;
+		this.radius = rPlayer;
+		this.col = c;
+		this.health = 100;
+	}
 
-        db.query(usernameQuery, (err, result) => {
-            if (err) {
-                return res.status(500).send(err);
-            }
-            if (result.length > 0) {
-                message = 'Username already exists';
-                res.render('add-player.ejs', {
-                    message,
-                    title: Welcome to Socka | Add a new player
-                });
-            } else {
-                
-                        // send the player's details to the database
-                        let query = "INSERT INTO `players` (first_name, last_name, position, number, image, user_name) VALUES ('" +
-                            first_name + "', '" + last_name + "', '" + position + "', '" + number + "', '" + image_name + "', '" + username + "')";
-                        db.query(query, (err, result) => {
-                            if (err) {
-                                return res.status(500).send(err);
-                            }
-                            res.redirect('/');
-                        });
-                  
-                } else {
-                    message = "Invalid File format. Only 'gif', 'jpeg' and 'png' images are allowed.";
-                    res.render('add-player.ejs', {
-                        message,
-                        title: Welcome to Socka | Add a new player
-                    });
-                }
-            }
-        });
-    }
-//    editPlayerPage: (req, res) => {
-//        let playerId = req.params.id;
-//        let query = "SELECT * FROM `players` WHERE id = '" + playerId + "' ";
-//        db.query(query, (err, result) => {
-//            if (err) {
-//                return res.status(500).send(err);
-//            }
-//            res.render('edit-player.ejs', {
-//                title: Edit  Player
-//                ,player: result[0]
-//                ,message: ''
-//            });
-//        });
-//    },
-//    editPlayer: (req, res) => {
-//        let playerId = req.params.id;
-//        let first_name = req.body.first_name;
-//        let last_name = req.body.last_name;
-//        let position = req.body.position;
-//        let number = req.body.number;
+	update(step, mapWidth, mapHeight, walls, controls){
+		if(controls.kA){
+			this.xPos -= this.speed * step;
+			for(var i = 0; i < walls.length; i++){
+				var w = walls[i].getCoords();
+				if(this.xPos - this.radius > w[0] && this.xPos - this.radius < w[1] 
+					&& ((this.yPos - this.radius > w[2] && this.yPos - this.radius < w[3]) || (this.yPos + this.radius > w[2] && this.yPos + this.radius < w[3]) || (this.yPos - this.radius < w[2] && this.yPos + this.radius > w[3]))) {
+					this.xPos += this.speed * step;
+				}
+			}
+		}
+		if(controls.kD){
+			this.xPos += this.speed * step;
+			for(var i = 0; i < walls.length; i++){
+				var w = walls[i].getCoords();
+				if(this.xPos + this.radius > w[0] && this.xPos + this.radius < w[1] && ((this.yPos - this.radius > w[2] && this.yPos - this.radius < w[3]) || (this.yPos + this.radius > w[2] && this.yPos + this.radius < w[3]) || (this.yPos - this.radius < w[2] && this.yPos + this.radius > w[3]))){
+					this.xPos -= this.speed * step;
+				}
+			}
+		}
+		if(controls.kW){
+			this.yPos -= this.speed * step;
+			for(var i = 0; i < walls.length; i++){
+				var w = walls[i].getCoords();
+				if(this.yPos - this.radius > w[2] && this.yPos - this.radius < w[3] && ((this.xPos - this.radius > w[0] && this.xPos - this.radius < w[1]) || (this.xPos + this.radius > w[0] && this.xPos + this.radius < w[1]) || (this.xPos - this.radius < w[0] && this.xPos + this.radius > w[1]))){
+					this.yPos += this.speed * step;
+				}
+			}
+		}
+		if(controls.kS){
+			this.yPos += this.speed * step;
+			for(var i = 0; i < walls.length; i++){
+				var w = walls[i].getCoords();
+				if(this.yPos + this.radius > w[2] && this.yPos + this.radius < w[3] && ((this.xPos - this.radius > w[0] && this.xPos - this.radius < w[1]) || (this.xPos + this.radius > w[0] && this.xPos + this.radius < w[1]) || (this.xPos - this.radius < w[0] && this.xPos + this.radius > w[1]))){
+					this.yPos -= this.speed * step;
+				}
+			}
+		}
 
-//        let query = "UPDATE `players` SET `first_name` = '" + first_name + "', `last_name` = '" + last_name + "', `position` = '" + position + "', `number` = '" + number + "' WHERE `players`.`id` = '" + playerId + "'";
-//        db.query(query, (err, result) => {
-//            if (err) {
-//                return res.status(500).send(err);
-//            }
-//            res.redirect('/');
-//        });
-//    },
-    
-//};
+		if(this.xPos - this.radius < 0){
+			this.xPos = this.radius;
+		}
+		if(this.xPos + this.radius > mapWidth){
+			this.xPos = mapWidth - this.radius;
+		}
+		if(this.yPos - this.radius < 0){
+			this.yPos = this.radius;
+		}
+		if(this.yPos + this.radius > mapHeight){
+			this.yPos = mapHeight - this.radius;
+		}
+	}
+
+	draw(ctx, xCvs, yCvs){
+		ctx.save();
+		ctx.beginPath();
+		ctx.arc(this.xPos - xCvs, this.yPos - yCvs, this.radius, 0, Math.PI*2);
+		ctx.fillStyle = "#0095DD";
+		ctx.fill();
+		ctx.strokeStyle = "#000000"
+		ctx.stroke();
+		ctx.closePath();
+		ctx.restore();
+	}
+
+	getPos(){
+		return [~~(this.xPos/1), ~~(this.yPos/1)];
+	}
+
+	subHP(hit){
+		if(this.health >= hit){
+			this.health -= hit;
+		}
+		else if(this.health > 0 && this.health < hit){
+			this.health = 0;
+		}
+		return;
+	}
+}
