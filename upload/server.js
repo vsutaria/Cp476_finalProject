@@ -17,7 +17,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 const socketIO = require('socket.io');
 
-var bcrypt = require('bcrypt');
+var passwordHash = require('password-hash');
 
 
 var mysql = require('mysql');
@@ -113,7 +113,6 @@ app.post('/login', function(req, res) {
 	console.log(password);
 	
 	
-	
 	if (username && password) {
 		db.connect(function(err){
 			if(!err) {
@@ -122,8 +121,9 @@ app.post('/login', function(req, res) {
 				console.log("Error connecting database ... nn");    
 			}
 		}); 
-		db.query('SELECT * FROM players WHERE UserName = ? AND Password = ?', [username, password], function(error, results, fields) {
-			if (results.length > 0) {
+		db.query('SELECT * FROM players WHERE UserName = ?', [username], function(error, results, fields) {
+			var passCheck=passwordHash.verify(password, results[0].Password);
+			if (passCheck) {
 				
 				req.session.loggedin = true;
 				req.session.username = username;
