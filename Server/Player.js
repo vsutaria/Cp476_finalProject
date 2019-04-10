@@ -1,11 +1,13 @@
 module.exports = class Player{
-	constructor(x, y, sPlayer, rPlayer){
+	constructor(x, y, sPlayer, rPlayer,c){
 		this.xPos = x;
 		this.yPos = y;
 
 		this.speed = sPlayer;
 
 		this.radius = rPlayer;
+		this.col = c;
+		this.health = 100;
 	}
 
 	update(step, mapWidth, mapHeight, walls, controls){
@@ -75,5 +77,15 @@ module.exports = class Player{
 
 	getPos(){
 		return [~~(this.xPos/1), ~~(this.yPos/1)];
+	}
+
+	subHP(hit){
+		if(this.health >= hit){
+			this.health -= hit;
+		}
+		else if(this.health > 0 && this.health < hit){
+			this.health = 0;
+		}
+		return;
 	}
 }

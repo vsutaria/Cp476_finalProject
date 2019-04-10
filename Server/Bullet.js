@@ -10,9 +10,11 @@ module.exports = class Bullet{
 		this.radius = rBullet;
 
 		this.spawned = true;
+
+		this.damage = 10;
 	}
 
-	update(step, mapWidth, mapHeight, walls){
+	update(step, mapWidth, mapHeight, walls, state){
 		this.xPos += this.xDir * this.speed * step;
 		this.yPos += this.yDir * this.speed * step;
 
@@ -33,6 +35,30 @@ module.exports = class Bullet{
 			if(this.yPos + this.radius > w[2] && this.yPos + this.radius < w[3]
 				&& ((this.xPos - this.radius > w[0] && this.xPos - this.radius < w[1]) || (this.xPos + this.radius > w[0] && this.xPos + this.radius < w[1]) || (this.xPos - this.radius < w[0] && this.xPos + this.radius > w[1]))){
 				this.spawned = false;
+			}
+		}
+
+		for (var id in state) {
+			var w = [state[id].player.xPos - state[id].player.radius, state[id].player.xPos + state[id].player.radius, state[id].player.yPos - state[id].player.radius, state[id].player.yPos + state[id].player.radius];
+			if(this.xPos - this.radius > w[0] && this.xPos - this.radius < w[1]
+				&& ((this.yPos - this.radius > w[2] && this.yPos - this.radius < w[3]) || (this.yPos + this.radius > w[2] && this.yPos + this.radius < w[3]) || (this.yPos - this.radius < w[2] && this.yPos + this.radius > w[3]))) {
+				this.spawned = false;
+				state[id].player.subHP(this.damage);
+			}
+			else if(this.xPos + this.radius > w[0] && this.xPos + this.radius < w[1]
+				&& ((this.yPos - this.radius > w[2] && this.yPos - this.radius < w[3]) || (this.yPos + this.radius > w[2] && this.yPos + this.radius < w[3]) || (this.yPos - this.radius < w[2] && this.yPos + this.radius > w[3]))){
+				this.spawned = false;
+				state[id].player.subHP(this.damage);
+			}
+			else if(this.yPos - this.radius > w[2] && this.yPos - this.radius < w[3]
+				&& ((this.xPos - this.radius > w[0] && this.xPos - this.radius < w[1]) || (this.xPos + this.radius > w[0] && this.xPos + this.radius < w[1]) || (this.xPos - this.radius < w[0] && this.xPos + this.radius > w[1]))){
+				this.spawned = false;
+				state[id].player.subHP(this.damage);
+			}
+			else if(this.yPos + this.radius > w[2] && this.yPos + this.radius < w[3]
+				&& ((this.xPos - this.radius > w[0] && this.xPos - this.radius < w[1]) || (this.xPos + this.radius > w[0] && this.xPos + this.radius < w[1]) || (this.xPos - this.radius < w[0] && this.xPos + this.radius > w[1]))){
+				this.spawned = false;
+				state[id].player.subHP(this.damage);
 			}
 		}
 

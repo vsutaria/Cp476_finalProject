@@ -47,11 +47,9 @@ function kUpHandler(e) {
 
 socket.emit('new player');
 
-setTimeout(function(){ 
-  setInterval(function() {
-    socket.emit('controls', controls);
-  }, 1000 / 60); 
-}, 3000);
+setInterval(function() {
+  socket.emit('controls', controls);
+}, 1000 / 60); 
 
 
 var canvas = document.getElementById('myCanvas');
@@ -61,6 +59,9 @@ var ctx = canvas.getContext('2d');
 var img = null;
 
 canvas.addEventListener("mousemove", aimHandler, false);
+canvas.addEventListener("click", function(e){
+    socket.emit("fire");
+  }, false);
 
 function aimHandler(e){
   var c = e.target.getBoundingClientRect();
@@ -97,10 +98,15 @@ function drawPlayer(p, c, xCvs, yCvs){
   c.save();
   c.beginPath();
   c.arc(p.xPos - xCvs, p.yPos - yCvs, p.radius, 0, Math.PI*2);
-  c.fillStyle = "#0095DD";
+  c.fillStyle = p.col;
   c.fill();
   c.strokeStyle = "#000000"
   c.stroke();
+  c.closePath();
+  c.beginPath();
+  c.rect(p.xPos - p.health/2 - xCvs, p.yPos - p.radius - 20 - yCvs, p.health, 10);
+  c.fillStyle = "#FF0000";
+  c.fill();
   c.closePath();
   c.restore();
 }
@@ -119,6 +125,16 @@ function drawGun(g, c, xCvs, yCvs){
   c.closePath();
 
   c.restore();
+}
+
+function drawBullet(g, ctx, xCvs, yCvs){
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(g.xPos - xCvs, g.yPos - yCvs, g.radius, 0, Math.PI*2);
+  ctx.fillStyle = "#000000";
+  ctx.fill();
+  ctx.closePath();
+  ctx.restore();
 }
 
 socket.on('new map', function(walls) {
@@ -194,19 +210,21 @@ socket.on('new map', function(walls) {
     c = null;
 });
 
-socket.on('state', function(state) {
-  console.log(state);
+setTimeout(function(){ 
+  socket.on('state', function(state) {
+    console.log(state);
 
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  console.log('drew rect');
+    drawMap(ctx, state[socket.id].camera.xPos, state[socket.id].camera.yPos);
 
-  drawMap(ctx, state[socket.id].camera.xPos, state[socket.id].camera.yPos);
-
-  console.log('drew map');
-  for (var id in state) {
-    drawPlayer(state[id].player, ctx, state[socket.id].camera.xPos, state[socket.id].camera.yPos);
-    drawGun(state[id].gun, ctx, state[socket.id].camera.xPos, state[socket.id].camera.yPos);
-  }
-  console.log('drawn');
-});
+    for (var id in state) {
+      drawPlayer(state[id].player, ctx, state[socket.id].camera.xPos, state[socket.id].camera.yPos);
+      drawGun(state[id].gun, ctx, state[socket.id].camera.xPos, state[socket.id].camera.yPos);
+    }
+    for (var i = 0; i < state[id].bulletList.length; i++) {
+      drawBullet(state[id].bulletList[i], ctx, state[socket.id].camera.xPos, state[socket.id].camera.yPos);
+    }
+    console.log('drawn');
+  });
+}, 1000);
