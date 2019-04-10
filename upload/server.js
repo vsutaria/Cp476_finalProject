@@ -73,8 +73,10 @@ app.post('/signUp', function (req,res){
 //		if (err) {
 //     		throw err;
 //  		}
-		
-		var sql = "INSERT INTO `players`(FirstName,LastName,UserName, Password, Score,Email) VALUES ('" + Fname + "','" + Lname + "','" + username + "','" +hash + "','" + score + "','" + Email+ "')";
+		// Store hash in your password DB.
+	//});
+	
+		var sql = "INSERT INTO `players`(FirstName,LastName,UserName, Password, Score,Email) VALUES ('" + Fname + "','" + Lname + "','" + username + "','" + password + "','" + score + "','" + Email+ "')";
  
 		var query = db.query(sql, function(err, result) {
     		if (err) {
@@ -82,13 +84,11 @@ app.post('/signUp', function (req,res){
   		}
 		
 			console.log("player added");
-			res.send({ data: 'user created in db' });
+			res.redirect('/');
 			//message = "Succesfully! Your account has been created.";
         	//res.render('signup.ejs',{message: message});
     	});
-    // Store hash in your password DB.
-	//});
-	
+    
 	
 	
 	db.end();
@@ -96,7 +96,7 @@ app.post('/signUp', function (req,res){
 
 app.post('/login', function(req, res) {
 	var username = req.body.username;
-	var password = req.body.password;
+	var password = req.body.psw;
 	console.log(username);
 	console.log(password);
 	
@@ -110,7 +110,7 @@ app.post('/login', function(req, res) {
 				console.log("Error connecting database ... nn");    
 			}
 		}); 
-		db.query('SELECT * FROM accounts WHERE UserName = ? AND Password = ?', [username, password], function(error, results, fields) {
+		db.query('SELECT * FROM players WHERE UserName = ? AND Password = ?', [username, password], function(error, results, fields) {
 			if (results.length > 0) {
 				
 				req.session.loggedin = true;
