@@ -1,7 +1,4 @@
 var socket = io();
-socket.on('message', function(data) {
-  console.log(data);
-});
 
 var controls = {
   kW: false,
@@ -217,7 +214,6 @@ socket.on('new map', function(walls) {
 
 setTimeout(function(){ 
   socket.on('state', function(state) {
-    console.log(state);
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -231,6 +227,5 @@ setTimeout(function(){
     for (var i = 0; i < state[id].bulletList.length; i++) {
       drawBullet(state[id].bulletList[i], ctx, state[socket.id].camera.xPos, state[socket.id].camera.yPos);
     }
-    console.log('drawn');
   });
 }, 1000);
