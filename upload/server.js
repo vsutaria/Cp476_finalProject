@@ -221,6 +221,7 @@ io.on('connection', function(socket) {
     if(state[socket.id].player.health == 0){
       delete state[socket.id];
       io.to(socket.id).emit("dead");
+      socket.disconnect();
     }
   });
 
