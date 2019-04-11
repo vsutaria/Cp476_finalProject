@@ -21,13 +21,8 @@ var passwordHash = require('password-hash');
 
 
 var mysql = require('mysql');
-var connection = mysql.createConnection({
-	host     : 'localhost',
-	user     : 'root',
-	password : '',
-	database : 'pew_pew'
-});
-global.db= connection;
+
+
 
 
 //configure body-parser for express
@@ -60,17 +55,13 @@ app.get('/', function (req, res) {
 //route the GET request to the specified path, "/user". 
 //This sends the user information to the path  
 app.post('/signUp', function (req,res){
-	
-	db.connect(function(err){
-		if(!err) {
-			console.log("Database is connected ... nn");    
-		} else {
-			console.log("Error connecting database ... nn");    
-		}
-	}); 
-	
-	
-	
+	var connection = mysql.createConnection({
+	host     : 'localhost',
+	user     : 'root',
+	password : '',
+	database : 'pew_pew'
+	});
+
 	var Fname = req.body.fname,
         Lname = req.body.lname,
         username = req.body.username,
@@ -80,26 +71,40 @@ app.post('/signUp', function (req,res){
 		score = 0;
 	console.log(username);
 	console.log(password);
-	var hashedPassword = passwordHash.generate(password);
-	console.log(hashedPassword);
-	var sql = "INSERT INTO `players`(FirstName,LastName,UserName, Password, Score,Email) VALUES ('" + Fname + "','" + Lname + "','" + username + "','" + hashedPassword + "','" + score + "','" + Email+ "')";
- 
-	var query = db.query(sql, function(err, result) {
-    	if (err) {
-			throw err;
+	connection.connect(function(err){
+		if(!err) {
+			console.log("Database is connected ... nn");    
+		} else {
+			console.log("Error connecting database ... nn");    
 		}
-		console.log("player added");
-		res.redirect('/');
-			//message = "Succesfully! Your account has been created.";
-        	//res.render('signup.ejs',{message: message});
-    });
+		var hashedPassword = passwordHash.generate(password);
+		console.log(hashedPassword);
+		var sql = "INSERT INTO `players`(FirstName,LastName,UserName, Password, Score,Email) VALUES ('" + Fname + "','" + Lname + "','" + username + "','" + hashedPassword + "','" + score + "','" + Email+ "')";
+	 
+		var query = connection.query(sql, function(err, result) {
+			if (err) {
+				throw err;
+			}
+			console.log("player added");
+			connection.end();
+			res.redirect('/');
+				//message = "Succesfully! Your account has been created.";
+				//res.render('signup.ejs',{message: message});
+		});
     
 	
 	
-	db.end();
+	
+	}); 
 });
 
 app.post('/login', function(req, res) {
+	var connection2 = mysql.createConnection({
+	host     : 'localhost',
+	user     : 'root',
+	password : '',
+	database : 'pew_pew'
+	});
 	var username = req.body.username;
 	var password = req.body.psw;
 	console.log(username);
@@ -107,28 +112,38 @@ app.post('/login', function(req, res) {
 	
 	
 	if (username && password) {
-		db.connect(function(err){
+		connection2.connect(function(err){
 			if(!err) {
 				console.log("Database is connected ... nn");    
 			} else {
 				console.log("Error connecting database ... nn");    
 			}
+		
+			connection2.query('SELECT * FROM players WHERE UserName = ? ', [username], function(error, results, fields) {
+				if (err) {
+					console.log(err, err.stack);
+					throw err;
+				}
+				console.log(error);
+				console.log(results);
+				console.log(results[0].Password);
+				var passCheck=passwordHash.verify(password, results[0].Password);
+				console.log(passCheck);
+				if (passCheck) {
+					
+					req.session.loggedin = true;
+					req.session.username = username;
+					connection2.end();
+					res.redirect('/');
+				} else {
+					res.send('Incorrect Username and/or Password!');
+				}			
+				//res.end();
+			});
+			
 		}); 
-		db.query('SELECT * FROM players WHERE UserName = ?', [username], function(error, results, fields) {
-			console.log(results);
-			var passCheck=passwordHash.verify(password, results[0].Password);
-			if (passCheck) {
-				
-				req.session.loggedin = true;
-				req.session.username = username;
-				res.redirect('/');
-			} else {
-				res.send('Incorrect Username and/or Password!');
-			}			
-			res.end();
-		});
-		db.end();
-	} else {
+	} 
+	else {
 		res.send('Please enter Username and Password!');
 		res.end();
 	}
