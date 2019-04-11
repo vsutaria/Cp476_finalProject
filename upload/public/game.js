@@ -57,8 +57,12 @@ var img = null;
 
 canvas.addEventListener("mousemove", aimHandler, false);
 canvas.addEventListener("click", function(e){
-    socket.emit("fire");
-  }, false);
+  socket.emit("fire");
+}, false);
+
+socket.on('dead', function(){
+  window.location.href = '/playMenu.html';
+});
 
 function aimHandler(e){
   var c = e.target.getBoundingClientRect();
